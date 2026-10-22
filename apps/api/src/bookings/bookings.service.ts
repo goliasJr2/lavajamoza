@@ -234,6 +234,33 @@ export class BookingsService {
     });
   }
 
+  async managementSummary() {
+    const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Maputo" }).format(new Date());
+    const dayStart = new Date(`${date}T00:00:00${MAPUTO_OFFSET}`);
+    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60_000);
+    const [today, requestsPending, accepted, inProgress, completedToday, estimated, demoPayments, recentBookings] = await Promise.all([
+      this.prisma.booking.count({ where: { startsAt: { gte: dayStart, lt: dayEnd } } }),
+      this.prisma.booking.count({ where: { status: "REQUESTED" } }),
+      this.prisma.booking.count({ where: { status: "ACCEPTED" } }),
+      this.prisma.booking.count({ where: { status: "IN_PROGRESS" } }),
+      this.prisma.booking.count({ where: { status: "COMPLETED", updatedAt: { gte: dayStart, lt: dayEnd } } }),
+      this.prisma.booking.aggregate({ where: { startsAt: { gte: dayStart, lt: dayEnd }, status: { notIn: ["CANCELLED", "REJECTED"] } }, _sum: { priceMznAtBooking: true } }),
+      this.prisma.demoMovement.aggregate({ where: { type: "PAYMENT", createdAt: { gte: dayStart, lt: dayEnd } }, _count: { _all: true }, _sum: { amount: true } }),
+      this.prisma.booking.findMany({
+        orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }], take: 6,
+        select: { publicCode: true, status: true, startsAt: true, priceMznAtBooking: true,
+          service: { select: { name: true } }, vehicle: { select: { plate: true } }, customer: { select: { name: true } } },
+      }),
+    ]);
+    return {
+      today: { bookings: today, completed: completedToday, estimatedServiceValueMzn: estimated._sum.priceMznAtBooking ?? 0 },
+      queue: { requestsPending, accepted, inProgress },
+      simulatedPaymentsToday: { count: demoPayments._count._all, amountMzn: demoPayments._sum.amount ?? 0 },
+      recentBookings,
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
   async updateRequestStatus(id: string, status: "ACCEPTED" | "REJECTED") {
     const result = await this.prisma.booking.updateMany({
       where: { id, status: "REQUESTED" },

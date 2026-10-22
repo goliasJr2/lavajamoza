@@ -72,7 +72,7 @@ export default function BookingManagement({ token }: { token: string }) {
     }
   }
 
-  return <section className="booking-management">
+  return <section className="booking-management" id="booking-management">
     <div className="booking-management-heading"><div><p className="eyebrow">Operação</p><h2>Pedidos de pré-marcação</h2><p>Confirme a disponibilidade antes de aceitar um pedido.</p></div><button className="secondary-button" type="button" onClick={() => void load()}>Actualizar lista</button></div>
     {notice && <p className="feedback success" role="status">{notice}</p>}
     {error && <p className="feedback error" role="alert">{error}</p>}

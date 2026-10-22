@@ -42,6 +42,13 @@ export class BookingsController {
     return this.bookings.listForManagement();
   }
 
+  @Get("manage/summary")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  managementSummary() {
+    return this.bookings.managementSummary();
+  }
+
   @Patch(":id/status")
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("ADMIN")

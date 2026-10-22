@@ -46,6 +46,8 @@ Abra `http://localhost:3000`. A API fica disponível em `http://localhost:4000/a
 
 O seed preserva estados de marcações e movimentos já existentes quando é executado novamente. Datas de marcações de exemplo são renovadas para permanecerem úteis numa nova demonstração.
 
+As demonstrações comerciais permanecem explicitamente fictícias: o painel separa estimativas do catálogo de pagamentos simulados e nenhuma métrica representa receita real.
+
 ## Documentação do projecto
 
 - [Plano de implementação](PLANO_IMPLEMENTACAO.md)

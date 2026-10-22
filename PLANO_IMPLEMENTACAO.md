@@ -84,13 +84,13 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 ### Fase 5 — Histórico e acabamento da experiência
 
-**Estado:** histórico do cliente implementado como consulta sem conta, usando código e telefone para verificar identidade e devolver até 50 marcações associadas ao contacto. A confirmação da pré-marcação agora liga directamente ao acompanhamento e ao histórico. Auditoria de alterações e resumo operacional da equipa continuam pendentes.
+**Estado:** histórico do cliente implementado como consulta sem conta, usando código e telefone para verificar identidade e devolver até 50 marcações associadas ao contacto. A confirmação da pré-marcação agora liga directamente ao acompanhamento e ao histórico. O painel administrativo apresenta contagens da operação diária, fila, pagamentos simulados e marcações recentes; auditoria de alterações continua pendente.
 
-**Backend:** [x] endpoint de histórico limitado a 50 registos e condicionado a código/telefone válidos; [ ] consultas operacionais agregadas e filtros adicionais.
+**Backend:** [x] endpoint de histórico limitado a 50 registos e condicionado a código/telefone válidos; [x] resumo operacional protegido por ADMIN, com consultas agregadas limitadas ao necessário.
 
-**Frontend:** [x] histórico de marcações com estados de erro, carregamento no botão e lista vazia; [ ] resumo operacional mínimo para a equipa.
+**Frontend:** [x] histórico de marcações com estados de erro, carregamento no botão e lista vazia; [x] resumo operacional e lista das seis marcações recentes, com indicadores claramente separados de receitas reais.
 
-**Concluído quando:** [x] cliente e equipa consultam registos autorizados nos fluxos actuais; [ ] completar indicadores e auditoria operacional.
+**Concluído quando:** [x] cliente e equipa consultam registos autorizados; [x] equipa vê o resumo actualizado a partir da API; [ ] auditoria de alterações.
 
 ### Fase 6 — PWA e validação de demonstração
 

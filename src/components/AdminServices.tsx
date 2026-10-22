@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import BookingManagement from "@/components/BookingManagement";
+import AdminOverview from "@/components/AdminOverview";
 
 type Service = {
   id: string;
@@ -85,11 +86,11 @@ export default function AdminServices() {
     }
   }
 
-  function logout() {
+  const logout = useCallback(() => {
     window.sessionStorage.removeItem("lavaja-admin-token");
     setToken("");
     setServices([]);
-  }
+  }, []);
 
   async function createService(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -197,8 +198,8 @@ export default function AdminServices() {
           <div className="admin-heading">
             <div>
               <p className="eyebrow">Painel de gestão</p>
-              <h1>Serviços e preços</h1>
-              <p className="admin-intro">Os novos serviços e preços aparecem como valores de referência para os clientes.</p>
+              <h1>Painel operacional</h1>
+              <p className="admin-intro">Acompanhe o atendimento e gira os serviços do Lava Já.</p>
             </div>
             <button className="secondary-button" onClick={logout} type="button">Terminar sessão</button>
           </div>
@@ -206,9 +207,11 @@ export default function AdminServices() {
           {notice && <p className="feedback success" role="status">{notice}</p>}
           {error && <p className="feedback error" role="alert">{error}</p>}
 
+          <AdminOverview token={token} onUnauthorized={logout} />
+
           <BookingManagement token={token} />
 
-          <form className="create-service-card admin-form" onSubmit={createService}>
+          <form id="services" className="create-service-card admin-form" onSubmit={createService}>
             <h2>Adicionar serviço</h2>
             <div className="form-grid">
               <label>Nome<input name="name" maxLength={100} minLength={2} required /></label>

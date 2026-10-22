@@ -87,6 +87,11 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | Frontend | Abrir histórico e submeter credenciais válidas | Apresenta estados e dados devolvidos pela API |
 | Frontend | API indisponível ou credenciais inválidas | Erro claro sem mostrar dados antigos como resultado actual |
 | Ponta a ponta | Criar duas marcações com o mesmo contacto e consultar o histórico por uma delas | Ambas aparecem; uma marcação de outro telefone não aparece |
+| API/segurança | Consultar o resumo operacional sem token ou com utilizador sem papel ADMIN | Acesso não autorizado/proibido |
+| API | Consultar resumo com marcações e pagamentos simulados em dias diferentes | Contagens, estados da fila, valores indicativos e pagamentos do dia usam o intervalo de Maputo correcto |
+| API | Consultar resumo sem dados | Contagens/valores iguais a zero e lista recente vazia |
+| Frontend | Abrir painel autenticado com resultados e sem resultados | Indicadores e actividade recente correspondem à API; vazio é explícito |
+| Frontend | Falha de rede ou token expirado no resumo | Mensagem de erro/termina sessão, sem apresentar indicadores fictícios |
 
 ## Fase 4 — Crédito Lava Já, pagamentos demonstrativos e fidelização
 

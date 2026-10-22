@@ -39,7 +39,7 @@ Este documento compara o prompt de interfaces (`PROMPT_IMPLEMENTACAO_INTERFACES.
 | Requisito no prompt | Estado | Implementação encontrada / lacuna |
 |---|---|---|
 | Login administrativo | ✅ | `/admin` pede autenticação da equipa; backend tem JWT, papéis e guardas de autorização. |
-| Dashboard operacional | ⬜ | Não existe resumo operacional com indicadores. |
+| Dashboard operacional | ✅ | O painel autenticado mostra marcações do dia, fila por estado, pagamentos simulados, estimativa de preços (explicitamente sem representar facturação) e seis marcações recentes. |
 | Gestão de marcações | 🟡 | `BookingManagement` consulta pedidos e permite aceitar/rejeitar pedidos pendentes, iniciar atendimentos aceites e concluir os iniciados. Filtros e pesquisa ainda não estão disponíveis. |
 | Gestão da fila | ✅ | A equipa avança os estados válidos na API. `/fila` consulta a marcação real por código e telefone e apresenta o passo persistido. |
 | Gestão de serviços | ✅ | CRUD de serviços no painel de equipa, apoiado pela API. |
