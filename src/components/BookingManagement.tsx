@@ -13,12 +13,17 @@ type ManagedBooking = {
   customer: { name: string; phone: string };
   vehicle: { plate: string };
   service: { name: string };
+  statusEvents: { id: string; fromStatus: ManagedBooking["status"]; toStatus: ManagedBooking["status"]; createdAt: string; staffUser: { email: string } | null }[];
 };
 
 const apiBase = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api`;
 const label: Record<ManagedBooking["status"], string> = {
   REQUESTED: "A aguardar resposta", ACCEPTED: "Aceite", IN_PROGRESS: "Em atendimento",
   COMPLETED: "Concluída", CANCELLED: "Cancelada", REJECTED: "Não aceite",
+};
+const eventLabel: Record<ManagedBooking["status"], string> = {
+  REQUESTED: "Pedido recebido", ACCEPTED: "Aceite", IN_PROGRESS: "Atendimento iniciado",
+  COMPLETED: "Serviço concluído", CANCELLED: "Cancelada", REJECTED: "Não aceite",
 };
 
 export default function BookingManagement({ token }: { token: string }) {
@@ -85,6 +90,13 @@ export default function BookingManagement({ token }: { token: string }) {
         {booking.status === "REQUESTED" && <div className="editor-actions"><button className="primary-button" disabled={busyId === booking.id} onClick={() => void update(booking, "ACCEPTED")}>Aceitar pedido</button><button className="secondary-button" disabled={busyId === booking.id} onClick={() => void update(booking, "REJECTED")}>Rejeitar</button></div>}
         {booking.status === "ACCEPTED" && <div className="editor-actions"><button className="primary-button" disabled={busyId === booking.id} onClick={() => void update(booking, "IN_PROGRESS")}>Iniciar atendimento</button></div>}
         {booking.status === "IN_PROGRESS" && <div className="editor-actions"><button className="primary-button" disabled={busyId === booking.id} onClick={() => void update(booking, "COMPLETED")}>Concluir serviço</button></div>}
+        <details className="status-history-details">
+          <summary>Histórico de alterações <span>{booking.statusEvents.length}</span></summary>
+          {booking.statusEvents.length ? <ol className="booking-status-history">{booking.statusEvents.map((event) => <li key={event.id}>
+            <span className="status-history-marker" aria-hidden="true" />
+            <div><strong>{eventLabel[event.fromStatus]} → {eventLabel[event.toStatus]}</strong><small>{new Intl.DateTimeFormat("pt-MZ", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Maputo" }).format(new Date(event.createdAt))} · {event.staffUser?.email ?? "Utilizador de equipa removido"}</small></div>
+          </li>)}</ol> : <p className="status-history-empty">Ainda não há alterações registadas. O histórico começa a partir das próximas acções da equipa.</p>}
+        </details>
       </article>)}
       {bookings.length === 0 && !error && <p className="catalog-state">Ainda não há pedidos de pré-marcação.</p>}
     </div>

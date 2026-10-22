@@ -70,6 +70,14 @@ Este documento compara o prompt de interfaces (`PROMPT_IMPLEMENTACAO_INTERFACES.
 
 O próximo passo é validar estes fluxos na demonstração com dados do seed. Integração com locais reais ou serviços de mensagens externos requer decisão e configuração próprias.
 
+## Incremento actual — auditoria da operação
+
+| Área | Estado | Implementação e limites |
+|---|---|---|
+| Alterações de estado | 🟡 | Cada aceitação, rejeição, início e conclusão passa a guardar estado anterior/seguinte, data/hora e utilizador autenticado na mesma transacção da mudança e da notificação. A linha temporal aparece apenas na gestão autenticada; registos anteriores à migração não são reconstruídos. |
+
+## Logótipos adicionados
+
 ## Logótipos adicionados
 
 - `public/brand/lava-ja-horizontal.svg` — utilizado na sidebar e no cabeçalho mobile.

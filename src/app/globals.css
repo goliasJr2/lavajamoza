@@ -1611,6 +1611,14 @@ select:focus-visible {
 .notification-copy a { color: var(--brand-deep); font-size: 11px; font-weight: 700; text-decoration: none; }
 .notification-copy a:hover { text-decoration: underline; }
 .notification-inbox > .secondary-button, .queue-live-card > .secondary-button { justify-self: start; text-decoration: none; }
+.status-history-details { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.status-history-details summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--brand-deep); font-size: 11px; font-weight: 700; cursor: pointer; }
+.status-history-details summary span { display: grid; min-width: 22px; height: 22px; place-items: center; padding: 0 5px; border-radius: 999px; background: #e8f8ff; font-size: 10px; }
+.booking-status-history { display: grid; gap: 13px; margin: 14px 0 0; padding: 0; list-style: none; }
+.booking-status-history li { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 10px; }
+.status-history-marker { width: 8px; height: 8px; margin-top: 4px; border: 2px solid var(--brand-primary); border-radius: 50%; }
+.booking-status-history li strong { display: block; font-size: 11px; }
+.booking-status-history li small, .status-history-empty { display: block; margin: 4px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
 
 @media (max-width: 840px) {
   .local-place-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

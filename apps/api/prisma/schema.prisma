@@ -28,6 +28,7 @@ model StaffUser {
   role         StaffRole @default(ADMIN)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  bookingStatusEvents BookingStatusEvent[]
 }
 
 model Service {
@@ -90,6 +91,7 @@ model Booking {
   service            Service       @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   demoMovements      DemoMovement[]
   notifications      CustomerNotification[]
+  statusEvents       BookingStatusEvent[]
 
   @@index([startsAt, endsAt, status])
   @@index([customerId, createdAt])
@@ -167,4 +169,19 @@ model CustomerNotification {
 
   @@index([customerId, createdAt])
   @@index([customerId, readAt])
+}
+
+model BookingStatusEvent {
+  id          String        @id @default(cuid())
+  bookingId   String
+  staffUserId String?
+  fromStatus  BookingStatus
+  toStatus    BookingStatus
+  createdAt   DateTime      @default(now())
+
+  booking   Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  staffUser StaffUser? @relation(fields: [staffUserId], references: [id], onDelete: SetNull)
+
+  @@index([bookingId, createdAt])
+  @@index([staffUserId, createdAt])
 }

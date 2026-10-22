@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { AuthenticatedStaff } from "../auth/jwt.strategy";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
@@ -52,14 +53,14 @@ export class BookingsController {
   @Patch(":id/status")
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("ADMIN")
-  updateStatus(@Param("id") id: string, @Body() input: UpdateBookingStatusDto) {
-    return this.bookings.updateRequestStatus(id, input.status);
+  updateStatus(@Param("id") id: string, @Body() input: UpdateBookingStatusDto, @Req() request: { user: AuthenticatedStaff }) {
+    return this.bookings.updateRequestStatus(id, input.status, request.user.sub);
   }
 
   @Patch(":id/operational-status")
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("ADMIN")
-  updateOperationalStatus(@Param("id") id: string, @Body() input: UpdateOperationalStatusDto) {
-    return this.bookings.updateOperationalStatus(id, input.status);
+  updateOperationalStatus(@Param("id") id: string, @Body() input: UpdateOperationalStatusDto, @Req() request: { user: AuthenticatedStaff }) {
+    return this.bookings.updateOperationalStatus(id, input.status, request.user.sub);
   }
 }

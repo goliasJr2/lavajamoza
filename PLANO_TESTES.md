@@ -170,6 +170,17 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | Frontend | Abrir caixa, actualizar, aguardar sincronização e marcar como lidas | Contagem, estado lido e estados de erro reflectem as respostas da API |
 | Integração | Usar guia e caixa de notificações | Não são feitas chamadas a mapas, localização, SMS, email ou push de sistema |
 
+## Fase 8 — Auditoria das alterações de estado
+
+| Área | Cenário | Resultado esperado |
+|---|---|---|
+| API | Administrador aceita/rejeita um pedido pendente | Estado, notificação e evento com actor/estado anterior/novo são persistidos na mesma transacção |
+| API | Administrador inicia e conclui atendimento | Cada transição válida cria um evento com o utilizador autenticado e data/hora |
+| Integridade | Repetir transição, usar transição inválida ou provocar falha | Estado não muda e nenhum evento de auditoria parcial é criado |
+| Acesso | Consultar eventos sem autenticação ou com papel não autorizado | API recusa; eventos são devolvidos apenas pelo endpoint de gestão protegido |
+| Frontend | Abrir histórico de uma marcação com e sem eventos | Linha temporal ordenada mostra transição, data e actor; vazio explica que o registo começa nas próximas acções |
+| Privacidade | Consultar pedido/histórico pelo endpoint público do cliente | Resposta não inclui eventos nem emails da equipa |
+
 ## Fora da matriz actual
 
 Não testar liquidação real entre carwash, custódia de dinheiro, carregamentos ou pagamentos reais por M-Pesa/e-Mola/Moza, nem adesão efectiva de afiliados. Testar apenas as simulações e verificar que não fazem chamadas financeiras externas. Antes de uma implementação real, criar casos de teste, requisitos de reconciliação e análise de segurança próprios.

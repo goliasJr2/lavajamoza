@@ -237,6 +237,13 @@ export class BookingsService {
         service: { select: { name: true } },
         vehicle: { select: { plate: true } },
         customer: { select: { name: true, phone: true } },
+        statusEvents: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true, fromStatus: true, toStatus: true, createdAt: true,
+            staffUser: { select: { email: true } },
+          },
+        },
       },
     });
   }
@@ -268,7 +275,7 @@ export class BookingsService {
     };
   }
 
-  async updateRequestStatus(id: string, status: "ACCEPTED" | "REJECTED") {
+  async updateRequestStatus(id: string, status: "ACCEPTED" | "REJECTED", staffUserId: string) {
     return this.prisma.$transaction(async (tx) => {
       const result = await tx.booking.updateMany({ where: { id, status: "REQUESTED" }, data: { status } });
       if (result.count === 0) {
@@ -280,6 +287,7 @@ export class BookingsService {
         service: { select: { name: true } }, vehicle: { select: { plate: true } },
         customer: { select: { id: true, name: true, phone: true } },
       } });
+      await tx.bookingStatusEvent.create({ data: { bookingId: booking.id, staffUserId, fromStatus: "REQUESTED", toStatus: status } });
       await tx.customerNotification.create({ data: {
         customerId: booking.customer.id, bookingId: booking.id,
         title: status === "ACCEPTED" ? "Pré-marcação aceite" : "Pré-marcação não aceite",
@@ -291,7 +299,7 @@ export class BookingsService {
     });
   }
 
-  async updateOperationalStatus(id: string, status: "IN_PROGRESS" | "COMPLETED") {
+  async updateOperationalStatus(id: string, status: "IN_PROGRESS" | "COMPLETED", staffUserId: string) {
     const fromStatus: BookingStatus = status === "IN_PROGRESS" ? "ACCEPTED" : "IN_PROGRESS";
     return this.prisma.$transaction(async (tx) => {
       const result = await tx.booking.updateMany({ where: { id, status: fromStatus }, data: { status } });
@@ -310,6 +318,7 @@ export class BookingsService {
           customer: { select: { id: true, name: true, phone: true } },
         },
       });
+      await tx.bookingStatusEvent.create({ data: { bookingId: booking.id, staffUserId, fromStatus, toStatus: status } });
       const notification = status === "IN_PROGRESS"
         ? { title: "Atendimento iniciado", message: `A lavagem da viatura ${booking.vehicle.plate} começou no Lava Já.` }
         : { title: "Serviço concluído", message: `O serviço ${booking.service.name} para a viatura ${booking.vehicle.plate} foi concluído.` };

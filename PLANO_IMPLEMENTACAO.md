@@ -64,13 +64,13 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 **Estado: implementada no fluxo principal.** A API permite as transições sequenciais `REQUESTED → ACCEPTED → IN_PROGRESS → COMPLETED`, mantendo também `REQUESTED → REJECTED`. A área da equipa apresenta apenas a próxima acção válida; a página `/fila` consulta a API usando código público e contacto telefónico. A consulta do cliente não requer conta e não expõe marcações quando os dois dados não coincidem.
 
-**Estado:** implementação concluída no fluxo principal, conforme o resumo acima; auditoria e actualização em tempo real continuam pendentes.
+**Estado:** implementação concluída no fluxo principal; a auditoria das transições foi implementada na Fase 8. Actualização em tempo real permanece fora do escopo.
 
-**Backend:** [x] gerir transições permitidas; [ ] registar auditoria de quem alterou cada estado. Cancelamento pelo cliente continua fora do escopo actual.
+**Backend:** [x] gerir transições permitidas; [x] registar o actor e os estados anterior/seguinte. Cancelamento pelo cliente continua fora do escopo actual.
 
 **Frontend:** [x] painel operacional para aceitar, rejeitar, iniciar e concluir; [x] consulta do estado da marcação pela API; [x] mensagens de sucesso e erro baseadas na resposta do servidor.
 
-**Concluído quando:** [x] uma mudança de estado feita pela equipa é persistida e visível ao cliente, sem permitir estados incompatíveis. [ ] auditoria das alterações e actualização automática em tempo real.
+**Concluído quando:** [x] uma mudança de estado feita pela equipa é persistida e visível ao cliente, sem permitir estados incompatíveis. [x] transições auditadas; actualização automática em tempo real não faz parte desta fase.
 
 ### Fase 4 — Crédito Lava Já, pagamentos demonstrativos e fidelização
 
@@ -84,13 +84,13 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 ### Fase 5 — Histórico e acabamento da experiência
 
-**Estado:** histórico do cliente implementado como consulta sem conta, usando código e telefone para verificar identidade e devolver até 50 marcações associadas ao contacto. A confirmação da pré-marcação agora liga directamente ao acompanhamento e ao histórico. O painel administrativo apresenta contagens da operação diária, fila, pagamentos simulados e marcações recentes; auditoria de alterações continua pendente.
+**Estado:** histórico do cliente implementado como consulta sem conta, usando código e telefone para verificar identidade e devolver até 50 marcações associadas ao contacto. A confirmação da pré-marcação agora liga directamente ao acompanhamento e ao histórico. O painel administrativo apresenta contagens da operação diária, fila, pagamentos simulados e marcações recentes; auditoria das transições é visível por marcação.
 
 **Backend:** [x] endpoint de histórico limitado a 50 registos e condicionado a código/telefone válidos; [x] resumo operacional protegido por ADMIN, com consultas agregadas limitadas ao necessário.
 
 **Frontend:** [x] histórico de marcações com estados de erro, carregamento no botão e lista vazia; [x] resumo operacional e lista das seis marcações recentes, com indicadores claramente separados de receitas reais.
 
-**Concluído quando:** [x] cliente e equipa consultam registos autorizados; [x] equipa vê o resumo actualizado a partir da API; [ ] auditoria de alterações.
+**Concluído quando:** [x] cliente e equipa consultam registos autorizados; [x] equipa vê o resumo actualizado a partir da API; [x] equipa consulta as transições registadas.
 
 ### Fase 6 — PWA e validação de demonstração
 
@@ -118,6 +118,12 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 **Frontend:** criar `/ao-redor` com filtros de categoria, indicação explícita de dados ilustrativos e estados de erro/vazio; criar `/notificacoes` com consulta segura, actualização periódica enquanto aberta, leitura e ligação ao acompanhamento. Disponibilizar atalhos na página inicial, confirmação e acompanhamento. Notificações são apenas internas à aplicação; sem SMS, email ou push de sistema.
 
 **Critério de conclusão:** dados de exemplo vêm da API e persistem na base de dados; cada evento relevante do pedido gera uma notificação; erro de rede/identidade não revela dados; nenhum serviço externo é chamado.
+
+### Fase 8 — Auditoria das alterações de estado
+
+Persistir em cada transição o estado anterior, o novo estado, a data/hora e o utilizador autenticado que executou a acção. Criar o registo na mesma transacção da actualização da marcação/notificação. Disponibilizar a linha temporal somente no painel protegido da equipa; registos antigos sem actor não devem ser inventados retroactivamente.
+
+**Critério de conclusão:** cada aceite/rejeição/início/conclusão bem-sucedido gera um único evento consultável; falha ou transição recusada não cria auditoria; consultas públicas do cliente não revelam identidade da equipa.
 
 ## Critério de sucesso do MVP
 
