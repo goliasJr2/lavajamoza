@@ -37,33 +37,60 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 
 ## Fase 2 — Viatura e pré-marcação
 
-**Estado actual do frontend:** formulário visual com validação nativa do navegador e pré-visualização local. A submissão mostra uma confirmação de simulação, sem criar marcação. Os casos abaixo de persistência e confirmação API ficam pendentes até ao incremento backend.
+**Estado actual:** criação e consulta de pedidos estão ligadas à API e persistem no PostgreSQL. A equipa autenticada pode listar, aceitar ou rejeitar pedidos pendentes. A confirmação inicial é apenas de recepção (`REQUESTED`); a equipa ainda precisa aceitar o atendimento. A capacidade é de uma viatura por intervalo, com horário das 08:00 às 18:00 no fuso de Maputo.
 
 | Tipo | Cenário | Resultado esperado |
 |---|---|---|
 | API | Criar marcação com serviço activo, viatura e horário válido | Marcação persistida com identificador e estado inicial |
+| API | Consultar disponibilidade com serviço/dia e com serviço inactivo/data inválida | Só devolve horas futuras livres, respeitando duração e janela diária; entradas inválidas são rejeitadas |
+| API | Criar marcação e consultar com código correcto e contacto correspondente | Os mesmos dados e estado persistido são devolvidos, sem expor registos de terceiros |
 | API | Criar marcação com serviço inactivo ou dados inválidos | Pedido rejeitado, sem registo parcial |
-| API | Pedir horário indisponível ou duplicar submissão | Conflito explicado; não criar marcação duplicada |
-| Segurança | Cliente tenta consultar marcação de outra pessoa | Acesso negado ou registo não revelado |
-| Frontend | Submeter formulário válido e formulário inválido | Confirmação só após resposta positiva; erros associados aos campos |
-| Ponta a ponta | Cliente cria marcação e funcionário abre o painel | A mesma marcação e os mesmos dados aparecem nos dois lados |
+| API | Pedir hora passada, antes das 08:00, depois do fecho, duração que ultrapassa as 18:00 ou data inválida | Pedido rejeitado com mensagem compreensível |
+| API | Pedir horário sobreposto ou repetir pedido para o mesmo intervalo | Conflito explicado; não criar marcação duplicada |
+| API | Associar matrícula existente a contacto diferente | Pedido rejeitado sem alterar o proprietário da viatura |
+| API | Consultar com código ou contacto que não coincidem | Resposta não revela se o código ou o contacto existe |
+| Segurança | Consultar ou alterar a lista administrativa sem token de administrador | A API responde não autorizado/proibido e não altera o pedido |
+| API | Aceitar ou rejeitar o mesmo pedido duas vezes, ou enviar estado não permitido | Primeira transição pendente é persistida; repetição/estado inválido recebe conflito/validação |
+| Frontend | Submeter formulário válido, dados inválidos, horário ocupado e API indisponível | Estado de sucesso só após resposta persistida; erro de rede/validação não parece sucesso |
+| Frontend | Ver confirmação e consultar com código/contacto | Código visível, estado inicial identificado como pedido recebido e dados consistentes |
+| Frontend | Alterar serviço/data e escolher horário disponível | Horários são actualizados para a combinação escolhida; horários ocupados ou que ultrapassam o fecho não são oferecidos |
+| Frontend | Equipa abre o painel e aceita/rejeita pedido pendente | Lista reflecte apenas o estado confirmado pela API; pedido tratado deixa de oferecer acções |
+| Ponta a ponta | Cliente cria pedido, equipa aceita e cliente consulta novamente | O mesmo pedido e o estado aceite aparecem nos dois lados |
 
 ## Fase 3 — Fila e estado do atendimento
 
-**Estado actual do frontend:** linha temporal com cenário inteiramente fictício, identificado no ecrã. Não validar como dado operacional.
+**Estado actual:** painel da equipa e consulta do cliente estão ligados à API; transições e estado do pedido são persistidos. A validação abaixo deve ser executada para confirmar a implementação neste incremento.
 
 | Tipo | Cenário | Resultado esperado |
 |---|---|---|
 | Unitário/API | Percorrer transições permitidas | Estado muda conforme as regras de domínio |
+| API | `REQUESTED → ACCEPTED → IN_PROGRESS → COMPLETED` com token ADMIN | Cada transição é persistida e devolvida com relações da marcação |
+| API | Tentar `REQUESTED → IN_PROGRESS`, `ACCEPTED → COMPLETED` ou regressão após conclusão | Recebe conflito e estado original mantém-se |
+| API | Enviar status operacional diferente de `IN_PROGRESS` ou `COMPLETED` | Validação rejeita a entrada |
 | Unitário/API | Tentar transição proibida ou alterar como utilizador sem permissão | Operação rejeitada sem mudança persistida |
 | Integração | Dois pedidos concorrentes actualizam a mesma marcação | Estado final consistente, sem duplicação ou regressão indevida |
 | Frontend | Funcionário altera estado e API responde com sucesso | Painel reflecte o estado confirmado |
+| Frontend | Pedido aceite e pedido em atendimento | Respectivamente, só “Iniciar atendimento” e “Concluir serviço” ficam disponíveis |
+| Frontend | Consultar `/fila` com código e telefone correctos | Detalhes e passo actual correspondem ao estado devolvido pela API |
+| Frontend | Consultar com código/telefone incorrectos, pedido rejeitado ou cancelado | Erro genérico ou estado terminal apropriado; sem dados de outra pessoa |
+| Frontend | Consultar com API indisponível | Mensagem de erro; não apresentar dados anteriores como actualizados |
 | Frontend | API falha durante actualização | Interface informa falha e não mostra sucesso falso |
 | Ponta a ponta | Funcionário avança atendimento e cliente consulta novamente | Cliente recebe o estado persistido e actualizado |
 
+## Fase 5 — Histórico do cliente
+
+| Tipo | Cenário | Resultado esperado |
+|---|---|---|
+| API | Consultar histórico com código e telefone coincidentes | Até 50 marcações do mesmo cliente, ordenadas da mais recente para a mais antiga |
+| API | Consultar com código/telefone que não coincidem | Resposta genérica de não encontrado; nenhum registo divulgado |
+| API | Cliente tem uma marcação, várias marcações ou só a marcação de verificação | Lista limitada ao contacto verificado e sem duplicados |
+| Frontend | Abrir histórico e submeter credenciais válidas | Apresenta estados e dados devolvidos pela API |
+| Frontend | API indisponível ou credenciais inválidas | Erro claro sem mostrar dados antigos como resultado actual |
+| Ponta a ponta | Criar duas marcações com o mesmo contacto e consultar o histórico por uma delas | Ambas aparecem; uma marcação de outro telefone não aparece |
+
 ## Fase 4 — Crédito Lava Já, pagamentos demonstrativos e fidelização
 
-**Estado actual do frontend:** carregamentos e pagamentos alteram apenas o saldo React durante a sessão; pontos e recompensa são exemplos estáticos. Confirmar visualmente os avisos de demonstração e verificar que actualizar a página repõe o saldo inicial. Persistência API permanece pendente.
+**Estado actual:** carteira, movimentos, pagamento e pontos estão ligados à API e persistidos no PostgreSQL. Valores e operações são fictícios e devem continuar identificados como demonstração.
 
 | Tipo | Cenário | Resultado esperado |
 |---|---|---|
@@ -71,10 +98,16 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | API | Repetir a mesma confirmação/idempotency key | Não duplica saldo nem movimento |
 | API | Simular pagamento superior ao saldo disponível | Operação recusada; saldo não fica negativo |
 | API | Simular pagamento de serviço elegível | Débito, estado demonstrativo e referência ficam no histórico |
+| API | Tentar pagar marcação pendente/rejeitada, repetir pagamento ou usar saldo insuficiente | Operação recusada; saldo e histórico permanecem consistentes |
+| API | Repetir carregamento/pagamento/resgate com a mesma chave idempotente | A mesma operação não duplica saldo, débito ou pontos |
+| API | Resgatar recompensa com menos de 500 pontos e com pelo menos 500 | Saldo insuficiente é recusado; com saldo válido, 500 pontos são debitados uma única vez |
+| API | Tentar enviar valor do carregamento/preço no corpo, método financeiro real ou campos extra | Validação rejeita campos não permitidos; backend define os valores demonstrativos |
 | API | Atribuir e resgatar pontos | Pontos são separados do saldo em meticais simulados e não ficam negativos |
 | Segurança/integridade | Enviar saldo, preço ou resultado de pagamento adulterado pelo cliente | Backend calcula valores e rejeita confirmação não autorizada |
 | Frontend | Abrir carteira, carregar, pagar e consultar histórico | Aviso de demonstração visível; interface só mostra sucesso após confirmação da API |
 | Frontend | Abrir cenário de parceiro/expansão | Exemplo identificado como conceptual/fictício, sem permitir pagamento real |
+| Frontend | Carregar carteira/pontos por código+telefone válidos após actualizar a página | Saldos e movimentos persistidos são recuperados pela API |
+| Frontend | API indisponível, dados inválidos ou pagamento sem saldo | Mensagem de erro; interface não mostra sucesso falso nem altera saldo localmente |
 | Ponta a ponta | Percorrer carregamento simulado → pagamento simulado → pontos | Movimentos consistentes no painel e na carteira do cliente |
 | Integração externa | Inspeccionar o fluxo de demonstração | Nenhum pedido é enviado a Moza, M-Pesa, e-Mola ou outro fornecedor financeiro |
 

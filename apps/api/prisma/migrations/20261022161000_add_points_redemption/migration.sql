@@ -1,0 +1,1 @@
+ALTER TYPE "DemoMovementType" ADD VALUE 'POINTS_REDEEMED';

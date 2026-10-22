@@ -52,41 +52,45 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 ### Fase 2 — Viatura e pré-marcação
 
-**Estado:** ecrã demonstrativo implementado; submissão ainda não persistida na API. A interface permite visualizar os campos, serviço, duração e preço, mas identifica explicitamente que não cria uma reserva.
+**Estado:** implementação inicial real concluída. Clientes, viaturas e pedidos são persistidos no PostgreSQL; a API valida serviço activo, contacto, matrícula, data/hora futura, horário de funcionamento (08:00–18:00) e conflitos de duração. O cliente recebe um código para consulta e distingue pedido recebido de atendimento confirmado. A equipa autenticada consulta pedidos e aceita/rejeita pedidos pendentes. A disponibilidade é de uma viatura por intervalo; transições depois da aceitação (em atendimento/concluída) ficam para a Fase 3.
 
-**Backend:** modelos mínimos de cliente/viatura e marcação; endpoints para criar e consultar marcações; validar serviço activo, campos, horário, disponibilidade e duplicação. Definir estados iniciais e política de cancelamento simples.
+**Backend:** modelos mínimos de cliente/viatura e marcação; endpoints públicos para consultar horários livres, criar um pedido e consultá-lo por código e contacto; endpoints administrativos protegidos para listar, aceitar ou rejeitar pedidos pendentes. Valida serviço activo, campos, horário, disponibilidade, sobreposição e duplicação. A data/hora é interpretada no fuso de Maputo. O estado inicial é `REQUESTED` e o preço/duração são fotografados no pedido. A disponibilidade actual considera uma viatura de cada vez; os pedidos não podem ser cancelados pelo cliente nesta etapa.
 
-**Frontend:** formulário de pré-marcação adequado a telemóvel, confirmação baseada na resposta da API, ecrã de detalhe e lista das marcações do cliente; vista administrativa para consultar e aceitar/rejeitar pedidos.
+**Frontend:** fluxo em duas etapas, começando pelo serviço e por horários livres vindos da API, seguido pelos dados da viatura/cliente. Exibe resumo antes do envio, confirmação somente depois da persistência, código de acompanhamento e consulta do pedido com código/contacto. A confirmação informa que o atendimento aguarda validação da equipa. O painel administrativo lista pedidos e permite aceitar/rejeitar um pedido pendente.
 
 **Concluído quando:** uma marcação válida persiste e surge no painel; pedidos inválidos ou horários indisponíveis recebem mensagens compreensíveis.
 
 ### Fase 3 — Fila e estado do atendimento
 
-**Estado:** vista conceptual implementada com dados fictícios. Não representa uma fila operacional nem recebe estados do backend.
+**Estado: implementada no fluxo principal.** A API permite as transições sequenciais `REQUESTED → ACCEPTED → IN_PROGRESS → COMPLETED`, mantendo também `REQUESTED → REJECTED`. A área da equipa apresenta apenas a próxima acção válida; a página `/fila` consulta a API usando código público e contacto telefónico. A consulta do cliente não requer conta e não expõe marcações quando os dois dados não coincidem.
 
-**Backend:** gerir a fila e transições de estado permitidas (por exemplo: aguardando, em atendimento, concluído e cancelado); registar quem fez cada alteração e impedir transições inválidas.
+**Estado:** implementação concluída no fluxo principal, conforme o resumo acima; auditoria e actualização em tempo real continuam pendentes.
 
-**Frontend:** painel operacional simples para a equipa actualizar a fila; cliente consegue ver o estado actual da sua marcação. Actualizar os dados a partir da API e indicar quando não foi possível confirmar uma alteração.
+**Backend:** [x] gerir transições permitidas; [ ] registar auditoria de quem alterou cada estado. Cancelamento pelo cliente continua fora do escopo actual.
 
-**Concluído quando:** uma mudança de estado feita pela equipa é persistida e visível ao cliente, sem permitir estados incompatíveis.
+**Frontend:** [x] painel operacional para aceitar, rejeitar, iniciar e concluir; [x] consulta do estado da marcação pela API; [x] mensagens de sucesso e erro baseadas na resposta do servidor.
+
+**Concluído quando:** [x] uma mudança de estado feita pela equipa é persistida e visível ao cliente, sem permitir estados incompatíveis. [ ] auditoria das alterações e actualização automática em tempo real.
 
 ### Fase 4 — Crédito Lava Já, pagamentos demonstrativos e fidelização
 
-**Estado:** ecrãs de protótipo implementados. O saldo de Crédito Lava Já pode ser alterado localmente na sessão para demonstrar carregamento e pagamento; fidelização apresenta pontos e recompensa de exemplo. Nada é persistido ou enviado para bancos, carteiras ou API.
+**Estado:** backend e frontend demonstram carregamentos, pagamento de uma marcação aceite/concluída, movimentos persistidos e pontos acumulados/resgatados. A identidade é verificada com código da marcação e telefone. Métodos Moza, M-Pesa e e-Mola são apenas rótulos de demonstração, sem chamadas externas. Os movimentos e saldos permanecem dados fictícios sem valor monetário.
 
-**Backend:** criar saldo demonstrativo separado por tipo (saldo carregado simulado e crédito promocional), movimentos imutáveis de crédito/débito, pontos de fidelização e registo de pagamentos simulados. Implementar confirmação idempotente e impedir saldo negativo. Criar dados de demonstração para o Moza Banco e para cenários de expansão, sem chamadas externas nem liquidação financeira.
+**Backend:** [x] saldo e movimentos demonstrativos imutáveis, idempotentes; [x] pagamentos limitados ao preço guardado de marcação aceite/concluída, sem saldo negativo ou pagamento duplicado; [x] pontos acumulados e resgate de 500 pontos; [ ] separar saldo promocional/carregado e painel de operações para equipa.
 
-**Frontend:** apresentar carteira com aviso visível de "Demonstração — sem valor monetário real", simular carregamento, autorização de pagamento de um serviço e atribuição/utilização de pontos. Mostrar opções conceptuais de carregamento associadas ao Moza e a outros meios, sem ligação técnica a esses fornecedores. Incluir uma apresentação clicável ou fluxo guiado que ilustre como o Crédito Lava Já poderia ser aceite em estabelecimentos parceiros no futuro, deixando explícito que os parceiros e a liquidação são fictícios nesta versão.
+**Frontend:** [x] carteira e fidelização ligados à API, carregamento fixo de 500 MT, pagamento pelo preço da marcação e registo de pontos/recompensa; [x] indicações visíveis de demonstração e opções conceptuais Moza/M-Pesa/e-Mola; [ ] fluxo guiado de parceiros fictícios.
 
-**Concluído quando:** o utilizador consegue percorrer a experiência completa com dados simulados; todos os movimentos ficam no histórico de demonstração; não existe integração financeira activa nem alegação de pagamento real.
+**Concluído quando:** [x] o utilizador percorre carregamento, pagamento e pontos com movimentos persistidos e idempotentes; [x] não há integração financeira real; [ ] demonstrar cenário de parceiros fictícios.
 
 ### Fase 5 — Histórico e acabamento da experiência
 
-**Backend:** endpoints de histórico do cliente e consultas operacionais básicas; paginação/limites adequados e filtragem por estado/data se necessária.
+**Estado:** histórico do cliente implementado como consulta sem conta, usando código e telefone para verificar identidade e devolver até 50 marcações associadas ao contacto. A confirmação da pré-marcação agora liga directamente ao acompanhamento e ao histórico. Auditoria de alterações e resumo operacional da equipa continuam pendentes.
 
-**Frontend:** histórico de marcações, estados vazios/erro/carregamento e resumo operacional mínimo para a equipa.
+**Backend:** [x] endpoint de histórico limitado a 50 registos e condicionado a código/telefone válidos; [ ] consultas operacionais agregadas e filtros adicionais.
 
-**Concluído quando:** cliente e equipa conseguem consultar apenas os registos permitidos para o seu perfil.
+**Frontend:** [x] histórico de marcações com estados de erro, carregamento no botão e lista vazia; [ ] resumo operacional mínimo para a equipa.
+
+**Concluído quando:** [x] cliente e equipa consultam registos autorizados nos fluxos actuais; [ ] completar indicadores e auditoria operacional.
 
 ### Fase 6 — PWA e validação de demonstração
 

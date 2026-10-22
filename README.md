@@ -1,6 +1,6 @@
 # Lava Já Smart
 
-Protótipo web para clientes e equipa de um único carwash: Lava Já, na Matola. A fase actual cobre catálogo, pré-marcações e acompanhamento da fila, e demonstrará também Crédito Lava Já, pagamentos, fidelização e possibilidades de parceria com dados simulados. Não haverá movimentação de dinheiro, integração bancária ou afiliados activos.
+Aplicação web para clientes e equipa de um único carwash: Lava Já, na Matola. O catálogo, pré-marcações, estados operacionais, histórico do cliente e movimentos de carteira/fidelização demonstrativos são persistidos através da API. Não há movimentação de dinheiro real, integração bancária nem afiliados activos.
 
 ## Stack
 
@@ -10,7 +10,7 @@ Protótipo web para clientes e equipa de um único carwash: Lava Já, na Matola.
 - Idioma da interface: Português de Moçambique (`pt-MZ`).
 - Cores da marca: `#03A8FB`, `#85DFFC`, `#0172D4`.
 
-O logótipo oficial será adicionado quando estiver disponível. Até lá, a aplicação apresenta uma marca textual temporária. O catálogo inicial e as credenciais de desenvolvimento são demonstrativos; ajuste os valores no `.env` antes de usar o painel.
+Os logótipos oficiais estão em `public/brand/`. Os serviços, credenciais e dados de cliente do seed são demonstrativos; ajuste os valores no `.env` antes de usar o painel.
 
 ## Arranque local
 
@@ -22,7 +22,7 @@ npm install
 npm --prefix apps/api install
 docker compose up -d database
 npm run api:prisma:generate
-npm run api:prisma:migrate
+npm run api:prisma:deploy
 npm run api:prisma:seed
 npm run dev:api
 ```
@@ -33,7 +33,18 @@ Noutro terminal, inicie o frontend:
 npm run dev
 ```
 
-Abra `http://localhost:3000`. A API fica disponível em `http://localhost:4000/api`. O seed cria serviços e preços de exemplo, sempre identificados como demonstrativos, e a conta administrativa configurada por `ADMIN_EMAIL`/`ADMIN_PASSWORD` no `.env`.
+Abra `http://localhost:3000`. A API fica disponível em `http://localhost:4000/api`. O seed é repetível e cria serviços, conta administrativa, cliente/viatura, três marcações, carteira demonstrativa e pontos. A conta administrativa usa `ADMIN_EMAIL`/`ADMIN_PASSWORD` do `.env` (valores locais de exemplo disponíveis em `.env.example`).
+
+### Dados de demonstração
+
+- Cliente: `84 123 4567`; viatura: `ABC123MC`.
+- Marcação pendente: `LAVA1001`.
+- Marcação aceite (pode ser usada para simular pagamento): `LAVA1002`.
+- Marcação concluída: `LAVA1003`.
+- Carteira demonstrativa inicial: 1.500 MT sem valor monetário real e 500 pontos fictícios.
+- Administração local: `admin@lavaja.local` / `change-this-password-123` (mude a palavra-passe antes de expor a aplicação fora da máquina local).
+
+O seed preserva estados de marcações e movimentos já existentes quando é executado novamente. Datas de marcações de exemplo são renovadas para permanecerem úteis numa nova demonstração.
 
 ## Documentação do projecto
 

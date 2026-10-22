@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+import BookingManagement from "@/components/BookingManagement";
 
 type Service = {
   id: string;
@@ -115,7 +116,7 @@ export default function AdminServices() {
       });
       if (!response.ok) throw new Error(await getError(response));
       formElement.reset();
-      setNotice("Serviço criado. Está identificado como demonstrativo no catálogo.");
+      setNotice("Serviço criado. O preço aparece como referência no catálogo.");
       await loadServices(token);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível criar o serviço.");
@@ -197,13 +198,15 @@ export default function AdminServices() {
             <div>
               <p className="eyebrow">Painel de gestão</p>
               <h1>Serviços e preços</h1>
-              <p className="admin-intro">Os novos serviços e preços são identificados como demonstrativos.</p>
+              <p className="admin-intro">Os novos serviços e preços aparecem como valores de referência para os clientes.</p>
             </div>
             <button className="secondary-button" onClick={logout} type="button">Terminar sessão</button>
           </div>
 
           {notice && <p className="feedback success" role="status">{notice}</p>}
           {error && <p className="feedback error" role="alert">{error}</p>}
+
+          <BookingManagement token={token} />
 
           <form className="create-service-card admin-form" onSubmit={createService}>
             <h2>Adicionar serviço</h2>
@@ -213,7 +216,7 @@ export default function AdminServices() {
               <label>Duração (minutos)<input name="durationMinutes" type="number" min={5} step={5} required /></label>
               <label className="wide-field">Descrição<textarea name="description" maxLength={500} minLength={5} required rows={2} /></label>
             </div>
-            <button className="primary-button" disabled={busy} type="submit">Guardar serviço demonstrativo</button>
+            <button className="primary-button" disabled={busy} type="submit">Guardar serviço</button>
           </form>
 
           <div className="admin-service-list">
@@ -257,7 +260,7 @@ function ServiceEditor({
     >
       <div className="service-card-top">
         <span className="service-icon" aria-hidden="true">✦</span>
-        <span className="demo-badge">{service.isActive ? "Activo · demonstrativo" : "Inactivo"}</span>
+        <span className="demo-badge">{service.isActive ? "Activo · preço de referência" : "Inactivo"}</span>
       </div>
       <label>Nome<input value={name} onChange={(event) => setName(event.target.value)} minLength={2} maxLength={100} required /></label>
       <label>Descrição<textarea value={description} onChange={(event) => setDescription(event.target.value)} minLength={5} maxLength={500} rows={2} required /></label>

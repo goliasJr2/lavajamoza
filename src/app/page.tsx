@@ -31,7 +31,10 @@ export default async function Home() {
             <p className="eyebrow">O seu carwash, mais simples</p>
             <h1>Mais tempo para si. Uma lavagem sem surpresas.</h1>
             <p className="hero-text">Consulte os serviços do Lava Já, organize a sua visita e acompanhe o atendimento num só lugar.</p>
-            <Link className="primary-link" href="#servicos">Ver serviços <span aria-hidden="true">↓</span></Link>
+            <div className="hero-actions">
+              <Link className="primary-link" href="#servicos">Ver serviços <span aria-hidden="true">↓</span></Link>
+              <Link className="hero-secondary-link" href="/marcacoes">Pedir pré-marcação</Link>
+            </div>
           </div>
           <div className="hero-art" aria-hidden="true">
             <div className="water-drop">✦</div>
@@ -53,19 +56,19 @@ export default async function Home() {
           ) : (
             <div className="service-grid">{services.map((service) => (
               <article className="service-card" key={service.id}>
-                <div className="service-card-top"><span className="service-icon" aria-hidden="true">✦</span>{service.isDemo && <span className="demo-badge">Preço demonstrativo</span>}</div>
+                <div className="service-card-top"><span className="service-icon" aria-hidden="true">✦</span>{service.isDemo && <span className="demo-badge">Preço de referência</span>}</div>
                 <h3>{service.name}</h3><p className="service-description">{service.description}</p>
                 <div className="service-details"><span>{service.durationMinutes} min estimados</span><strong>{service.priceMzn.toLocaleString("pt-MZ")} MT</strong></div>
-                <Link className="service-book-link" href="/marcacoes">Escolher este serviço →</Link>
+                <Link className="service-book-link" href={{ pathname: "/marcacoes", query: { service: service.id } }}>Escolher este serviço →</Link>
               </article>
             ))}</div>
           )}
-          <p className="scope-note">Os preços demonstrativos são exemplos de protótipo e podem não corresponder aos preços praticados pelo carwash.</p>
+          <p className="scope-note">Os preços assinalados como referência são indicativos e sujeitos à confirmação da equipa Lava Já.</p>
         </section>
 
-        <section className="feature-grid" aria-label="Funcionalidades do protótipo">
+        <section className="feature-grid" aria-label="Explore o Lava Já Smart">
           <Link className="feature-card" href="/marcacoes"><span className="feature-icon">01</span><h3>Organize a visita</h3><p>Veja como funcionaria o pedido de pré-marcação.</p><span className="feature-action">Explorar →</span></Link>
-          <Link className="feature-card" href="/fila"><span className="feature-icon">02</span><h3>Acompanhe a fila</h3><p>Conheça os estados previstos para o atendimento.</p><span className="feature-action">Ver demonstração →</span></Link>
+          <Link className="feature-card" href="/fila"><span className="feature-icon">02</span><h3>Acompanhe a fila</h3><p>Veja as etapas do atendimento do seu veículo.</p><span className="feature-action">Conhecer etapas →</span></Link>
           <Link className="feature-card" href="/credito"><span className="feature-icon">03</span><h3>Crédito Lava Já</h3><p>Explore um conceito de carteira e pagamentos simulados.</p><span className="feature-action">Explorar conceito →</span></Link>
         </section>
       </main>

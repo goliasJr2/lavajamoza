@@ -12,7 +12,8 @@
     "db:down": "docker compose down",
     "api:build": "npm --prefix apps/api run build",
     "api:prisma:generate": "npm --prefix apps/api run prisma:generate",
-    "api:prisma:migrate": "npm --prefix apps/api run prisma:migrate --",
+    "api:prisma:migrate": "npm --prefix apps/api run prisma:migrate",
+    "api:prisma:deploy": "npm --prefix apps/api exec -- prisma migrate deploy",
     "api:prisma:seed": "npm --prefix apps/api run prisma:seed"
   },
   "dependencies": {
