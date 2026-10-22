@@ -76,11 +76,11 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 **Estado:** backend e frontend demonstram carregamentos, pagamento de uma marcação aceite/concluída, movimentos persistidos e pontos acumulados/resgatados. A identidade é verificada com código da marcação e telefone. Métodos Moza, M-Pesa e e-Mola são apenas rótulos de demonstração, sem chamadas externas. Os movimentos e saldos permanecem dados fictícios sem valor monetário.
 
-**Backend:** [x] saldo e movimentos demonstrativos imutáveis, idempotentes; [x] pagamentos limitados ao preço guardado de marcação aceite/concluída, sem saldo negativo ou pagamento duplicado; [x] pontos acumulados e resgate de 500 pontos; [ ] separar saldo promocional/carregado e painel de operações para equipa.
+**Backend:** [x] saldos demonstrativos carregado e promocional separados; [x] cada movimento regista a origem usada; [x] pagamento consome primeiro o saldo promocional e depois o carregado; [x] pagamentos limitados ao preço guardado, sem saldo negativo ou duplicação; [x] pontos e resgate de 500 pontos; [x] resumo de carteiras e movimentos recentes protegido para ADMIN.
 
-**Frontend:** [x] carteira e fidelização ligados à API, carregamento fixo de 500 MT, pagamento pelo preço da marcação e registo de pontos/recompensa; [x] indicações visíveis de demonstração e opções conceptuais Moza/M-Pesa/e-Mola; [ ] fluxo guiado de parceiros fictícios.
+**Frontend:** [x] carteira mostra total e separação entre saldo carregado/promocional, carregamento fixo de 500 MT e detalhe de origem nos pagamentos novos; [x] equipa consulta totais e movimentos recentes demonstrativos no painel; [x] indicações visíveis de demonstração e opções conceptuais Moza/M-Pesa/e-Mola; [ ] fluxo guiado de parceiros fictícios.
 
-**Concluído quando:** [x] o utilizador percorre carregamento, pagamento e pontos com movimentos persistidos e idempotentes; [x] não há integração financeira real; [ ] demonstrar cenário de parceiros fictícios.
+**Concluído quando:** [x] o utilizador percorre carregamento, pagamento e pontos com movimentos persistidos e idempotentes; [x] a origem dos saldos e a alocação dos pagamentos são visíveis; [x] equipa consulta operações sem acesso público; [x] não há integração financeira real. Demonstrar cenário de parceiros fictícios permanece extensão opcional.
 
 ### Fase 5 — Histórico e acabamento da experiência
 

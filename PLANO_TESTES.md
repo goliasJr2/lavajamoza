@@ -113,6 +113,9 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | Tipo | Cenário | Resultado esperado |
 |---|---|---|
 | API | Simular carregamento demonstrativo | Movimento registado como simulado; saldo actualizado uma única vez |
+| API | Carregar 500 MT pelos meios simulados Moza/M-Pesa/e-Mola e pelo meio promocional | Saldo carregado aumenta para os três primeiros; apenas o saldo promocional aumenta para `PROMO_DEMO` |
+| API | Pagar com saldo misto, promocional suficiente e carregado insuficiente | Total validado; saldo promocional é consumido primeiro e o movimento guarda a divisão exacta |
+| API | Migrar uma carteira existente com saldo combinado | Total anterior é preservado no saldo carregado; valores históricos sem origem não são inventados |
 | API | Repetir a mesma confirmação/idempotency key | Não duplica saldo nem movimento |
 | API | Simular pagamento superior ao saldo disponível | Operação recusada; saldo não fica negativo |
 | API | Simular pagamento de serviço elegível | Débito, estado demonstrativo e referência ficam no histórico |
@@ -121,8 +124,11 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | API | Resgatar recompensa com menos de 500 pontos e com pelo menos 500 | Saldo insuficiente é recusado; com saldo válido, 500 pontos são debitados uma única vez |
 | API | Tentar enviar valor do carregamento/preço no corpo, método financeiro real ou campos extra | Validação rejeita campos não permitidos; backend define os valores demonstrativos |
 | API | Atribuir e resgatar pontos | Pontos são separados do saldo em meticais simulados e não ficam negativos |
+| API/segurança | Consultar resumo de operações demonstrativas sem token ou com papel não autorizado | Acesso recusado; totais e movimentos recentes só aparecem para ADMIN autenticado |
 | Segurança/integridade | Enviar saldo, preço ou resultado de pagamento adulterado pelo cliente | Backend calcula valores e rejeita confirmação não autorizada |
 | Frontend | Abrir carteira, carregar, pagar e consultar histórico | Aviso de demonstração visível; interface só mostra sucesso após confirmação da API |
+| Frontend | Consultar carteira com saldos carregado/promocional e efectuar pagamento | Composição dos saldos aparece separada; pagamento e movimentos mostram quanto saiu de cada origem |
+| Frontend/equipa | Abrir resumo de operações demonstrativas com dados e sem movimentos | Totais, saldos, pagamentos e actividade recente correspondem à API; estado vazio é explícito |
 | Frontend | Abrir cenário de parceiro/expansão | Exemplo identificado como conceptual/fictício, sem permitir pagamento real |
 | Frontend | Carregar carteira/pontos por código+telefone válidos após actualizar a página | Saldos e movimentos persistidos são recuperados pela API |
 | Frontend | API indisponível, dados inválidos ou pagamento sem saldo | Mensagem de erro; interface não mostra sucesso falso nem altera saldo localmente |

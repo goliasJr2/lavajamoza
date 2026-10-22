@@ -1,4 +1,7 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { Roles } from "../auth/roles.decorator";
+import { RolesGuard } from "../auth/roles.guard";
 import { LoadDemoWalletDto, PayDemoWalletDto, RedeemDemoPointsDto, WalletIdentityDto } from "./demo-wallet.dto";
 import { WalletService } from "./wallet.service";
 
@@ -9,6 +12,13 @@ export class WalletController {
   @Get()
   get(@Query() query: WalletIdentityDto) {
     return this.wallet.get(query);
+  }
+
+  @Get("manage/summary")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  managementSummary() {
+    return this.wallet.managementSummary();
   }
 
   @Post("loads")

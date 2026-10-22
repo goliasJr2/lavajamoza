@@ -50,7 +50,7 @@ O service worker não é registado pelo servidor de desenvolvimento. Em produç�
 - Marcação pendente: `LAVA1001`.
 - Marcação aceite (pode ser usada para simular pagamento): `LAVA1002`.
 - Marcação concluída: `LAVA1003`.
-- Carteira demonstrativa inicial: 1.500 MT sem valor monetário real e 500 pontos fictícios.
+- Carteira de demonstração num seed limpo: 1.000 MT carregados, 500 MT promocionais e 500 pontos fictícios, tudo sem valor monetário real. Em bases já existentes, a migração preserva o total antigo no saldo carregado, porque movimentos anteriores não guardavam a origem.
 - Administração local: `admin@lavaja.local` / `change-this-password-123` (mude a palavra-passe antes de expor a aplicação fora da máquina local).
 
 O seed preserva estados de marcações e movimentos já existentes quando é executado novamente. Datas de marcações de exemplo são renovadas para permanecerem úteis numa nova demonstração.

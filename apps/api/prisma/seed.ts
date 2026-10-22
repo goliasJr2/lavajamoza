@@ -115,24 +115,21 @@ async function main() {
     await prisma.localPlace.upsert({ where: { name: place.name }, update: {}, create: { ...place, isDemo: true } });
   }
 
-  const wallet = await prisma.demoWallet.upsert({
-    where: { customerId: customer.id },
-    update: {},
-    create: { customerId: customer.id, balanceMzn: 1500, pointsBalance: 500 },
-  });
-  await prisma.demoMovement.upsert({
-    where: { idempotencyKey: "seed-wallet-load-2026" },
-    update: {},
-    create: { walletId: wallet.id, customerId: customer.id, type: "LOAD", amount: 1500, description: "Saldo inicial de demonstração", idempotencyKey: "seed-wallet-load-2026" },
-  });
-  await prisma.demoMovement.upsert({
-    where: { idempotencyKey: "seed-wallet-points-2026" },
-    update: {},
-    create: { walletId: wallet.id, customerId: customer.id, type: "POINTS_EARNED", amount: 500, description: "Saldo inicial de pontos demonstrativos", idempotencyKey: "seed-wallet-points-2026" },
-  });
+  let wallet = await prisma.demoWallet.findUnique({ where: { customerId: customer.id } });
+  if (!wallet) {
+    wallet = await prisma.demoWallet.create({
+      data: { customerId: customer.id, loadedBalanceMzn: 1000, promoBalanceMzn: 500, pointsBalance: 500 },
+    });
+    await prisma.demoMovement.createMany({ data: [
+      { walletId: wallet.id, customerId: customer.id, type: "LOAD", amount: 1000, loadedAmountMzn: 1000, description: "Saldo inicial carregado de demonstração", idempotencyKey: "seed-wallet-load-2026" },
+      { walletId: wallet.id, customerId: customer.id, type: "PROMO_CREDIT", amount: 500, promoAmountMzn: 500, description: "Crédito promocional inicial demonstrativo", idempotencyKey: "seed-wallet-promo-2026" },
+      { walletId: wallet.id, customerId: customer.id, type: "POINTS_EARNED", amount: 500, description: "Saldo inicial de pontos demonstrativos", idempotencyKey: "seed-wallet-points-2026" },
+    ] });
+  }
 
   console.info("Dados demo criados. Cliente: 84 123 4567; marcações: LAVA1001, LAVA1002, LAVA1003.");
   console.info("Guia local: 6 sugestões fictícias entre lojas, alimentação e entretenimento; nenhuma é afiliada.");
+  console.info("Carteira demo: saldos carregado e promocional separados; saldos existentes preservados pelo seed.");
 }
 
 main()

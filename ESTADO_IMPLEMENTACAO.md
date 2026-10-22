@@ -13,7 +13,7 @@ Este documento compara o prompt de interfaces (`PROMPT_IMPLEMENTACAO_INTERFACES.
 | Logótipo | ✅ | SVG horizontal e vertical adicionados a `public/brand`; versão horizontal aplicada ao cabeçalho desktop/mobile. |
 | Fluxo cliente: serviços e pedido | 🟡 | Catálogo e pré-marcação persistida funcionam; ainda não há conta de cliente nem área de histórico autenticada. |
 | Fluxo operacional da equipa | 🟡 | Login de equipa, catálogo e decisão de aceitar/rejeitar pedidos existem. A fila não actualiza estados até à conclusão. |
-| Crédito e fidelização | 🟡 | Carteira, carregamentos fixos, pagamento de marcação aceite/concluída e pontos/resgate são persistidos como demonstração. Não existe qualquer integração financeira; painel interno e separação de saldo promocional/carregado continuam pendentes. |
+| Crédito e fidelização | 🟡 | Carteira e movimentos fictícios são persistidos; saldos carregado/promocional estão separados, pagamentos consomem primeiro o promocional e o painel ADMIN mostra totais e movimentos. Não existe integração financeira real. |
 | PWA | 🟡 | Manifesto, ícones PNG/SVG, instalação no browser, instrução iOS e fallback offline existem. Falta validação em dispositivos/navegadores reais. |
 | Pagamentos, cartão QR, métricas e promoções | 🟡 | Pagamento simulado de serviço existe; cartão QR, métricas e promoções não estão implementados. |
 
@@ -75,6 +75,12 @@ O próximo passo é validar estes fluxos na demonstração com dados do seed. In
 | Área | Estado | Implementação e limites |
 |---|---|---|
 | Alterações de estado | 🟡 | Cada aceitação, rejeição, início e conclusão passa a guardar estado anterior/seguinte, data/hora e utilizador autenticado na mesma transacção da mudança e da notificação. A linha temporal aparece apenas na gestão autenticada; registos anteriores à migração não são reconstruídos. |
+
+## Incremento actual — separação de saldos demonstrativos
+
+| Área | Estado | Implementação e limites |
+|---|---|---|
+| Carteira demonstrativa | 🟡 | Saldo carregado e crédito promocional têm valores e movimentos separados. Pagamentos usam primeiro o saldo promocional e registam a origem de cada parcela; painel ADMIN apresenta agregados e movimentos recentes. Carteiras antigas mantêm o valor total no saldo carregado, pois o histórico não guardava a origem. Nenhum saldo tem valor monetário. |
 
 ## Logótipos adicionados
 

@@ -29,7 +29,15 @@ export class WalletService {
   async get(input: WalletIdentityDto) {
     const booking = await this.verifiedBooking(input);
     const wallet = await this.prisma.demoWallet.findUnique({ where: { customerId: booking.customerId }, include: { movements: { orderBy: { createdAt: "desc" }, take: 50 } } });
-    return { demo: true, booking: { code: input.code, status: booking.status, service: booking.service.name, priceMzn: booking.priceMznAtBooking }, balanceMzn: wallet?.balanceMzn ?? 0, pointsBalance: wallet?.pointsBalance ?? 0, movements: (wallet?.movements ?? []).map(({ id, type, amount, description, createdAt }) => ({ id, type, amount, description, createdAt })) };
+    const loadedBalanceMzn = wallet?.loadedBalanceMzn ?? 0;
+    const promoBalanceMzn = wallet?.promoBalanceMzn ?? 0;
+    return {
+      demo: true,
+      booking: { code: input.code, status: booking.status, service: booking.service.name, priceMzn: booking.priceMznAtBooking },
+      balanceMzn: loadedBalanceMzn + promoBalanceMzn, loadedBalanceMzn, promoBalanceMzn,
+      pointsBalance: wallet?.pointsBalance ?? 0,
+      movements: (wallet?.movements ?? []).map(({ id, type, amount, loadedAmountMzn, promoAmountMzn, description, createdAt }) => ({ id, type, amount, loadedAmountMzn, promoAmountMzn, description, createdAt })),
+    };
   }
 
   async load(input: LoadDemoWalletDto) {
@@ -39,9 +47,13 @@ export class WalletService {
         const replay = await tx.demoMovement.findUnique({ where: { idempotencyKey: input.idempotencyKey } });
         const wallet = await this.walletFor(booking.customerId, tx);
         if (replay) return this.getInTransaction(wallet.id, tx, booking);
-        await tx.demoWallet.update({ where: { id: wallet.id }, data: { balanceMzn: { increment: 500 } } });
+        const isPromo = input.method === "PROMO_DEMO";
+        await tx.demoWallet.update({ where: { id: wallet.id }, data: isPromo
+          ? { promoBalanceMzn: { increment: 500 } }
+          : { loadedBalanceMzn: { increment: 500 } } });
         await tx.demoMovement.create({ data: {
-          walletId: wallet.id, customerId: booking.customerId, type: "LOAD", amount: 500,
+          walletId: wallet.id, customerId: booking.customerId, type: isPromo ? "PROMO_CREDIT" : "LOAD", amount: 500,
+          loadedAmountMzn: isPromo ? 0 : 500, promoAmountMzn: isPromo ? 500 : 0,
           description: `Carregamento de 500 MT via ${METHOD_LABEL[input.method]}`,
           idempotencyKey: input.idempotencyKey,
         } });
@@ -61,14 +73,22 @@ export class WalletService {
         const wallet = await this.walletFor(booking.customerId, tx);
         if (replay) return this.getInTransaction(wallet.id, tx, booking);
         if (!["ACCEPTED", "COMPLETED"].includes(booking.status)) throw new BadRequestException("Só é possível simular o pagamento de uma marcação aceite ou concluída.");
-        if (wallet.balanceMzn < booking.priceMznAtBooking) throw new BadRequestException("O saldo demonstrativo é insuficiente.");
+        const totalBalanceMzn = wallet.loadedBalanceMzn + wallet.promoBalanceMzn;
+        if (totalBalanceMzn < booking.priceMznAtBooking) throw new BadRequestException("O saldo demonstrativo é insuficiente.");
         const alreadyPaid = await tx.demoMovement.findFirst({ where: { bookingId: booking.id, type: "PAYMENT" } });
         if (alreadyPaid) throw new ConflictException("Esta marcação já tem um pagamento demonstrativo registado.");
         const points = Math.floor(booking.priceMznAtBooking / 100);
-        await tx.demoWallet.update({ where: { id: wallet.id }, data: { balanceMzn: { decrement: booking.priceMznAtBooking }, pointsBalance: { increment: points } } });
+        const promoAmountMzn = Math.min(wallet.promoBalanceMzn, booking.priceMznAtBooking);
+        const loadedAmountMzn = booking.priceMznAtBooking - promoAmountMzn;
+        await tx.demoWallet.update({ where: { id: wallet.id }, data: {
+          loadedBalanceMzn: { decrement: loadedAmountMzn },
+          promoBalanceMzn: { decrement: promoAmountMzn },
+          pointsBalance: { increment: points },
+        } });
         await tx.demoMovement.create({ data: {
           walletId: wallet.id, customerId: booking.customerId, bookingId: booking.id, type: "PAYMENT",
-          amount: booking.priceMznAtBooking, description: `Pagamento demonstrativo: ${booking.service.name}`,
+          amount: booking.priceMznAtBooking, loadedAmountMzn, promoAmountMzn,
+          description: `Pagamento demonstrativo: ${booking.service.name}`,
           idempotencyKey: `${input.idempotencyKey}:payment`,
         } });
         if (points > 0) await tx.demoMovement.create({ data: {
@@ -102,8 +122,47 @@ export class WalletService {
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
+  async managementSummary() {
+    const [walletCount, balances, payments, recentMovements] = await Promise.all([
+      this.prisma.demoWallet.count(),
+      this.prisma.demoWallet.aggregate({ _sum: { loadedBalanceMzn: true, promoBalanceMzn: true, pointsBalance: true } }),
+      this.prisma.demoMovement.aggregate({
+        where: { type: "PAYMENT" }, _count: { _all: true }, _sum: { amount: true },
+      }),
+      this.prisma.demoMovement.findMany({
+        orderBy: { createdAt: "desc" }, take: 8,
+        select: {
+          id: true, type: true, amount: true, loadedAmountMzn: true, promoAmountMzn: true,
+          description: true, createdAt: true,
+          customer: { select: { name: true } },
+          booking: { select: { publicCode: true } },
+        },
+      }),
+    ]);
+    const loadedBalanceMzn = balances._sum.loadedBalanceMzn ?? 0;
+    const promoBalanceMzn = balances._sum.promoBalanceMzn ?? 0;
+    return {
+      demo: true,
+      wallets: {
+        count: walletCount, loadedBalanceMzn, promoBalanceMzn,
+        totalBalanceMzn: loadedBalanceMzn + promoBalanceMzn,
+        pointsBalance: balances._sum.pointsBalance ?? 0,
+      },
+      payments: { count: payments._count._all, amountMzn: payments._sum.amount ?? 0 },
+      recentMovements,
+    };
+  }
+
   private async getInTransaction(walletId: string, tx: Prisma.TransactionClient, booking: { publicCode: string; status: string; priceMznAtBooking: number; service: { name: string } }) {
     const wallet = await tx.demoWallet.findUniqueOrThrow({ where: { id: walletId }, include: { movements: { orderBy: { createdAt: "desc" }, take: 50 } } });
-    return { demo: true, booking: { code: booking.publicCode, status: booking.status, service: booking.service.name, priceMzn: booking.priceMznAtBooking }, balanceMzn: wallet.balanceMzn, pointsBalance: wallet.pointsBalance, movements: wallet.movements.map(({ id, type, amount, description, createdAt }) => ({ id, type, amount, description, createdAt })) };
+    return {
+      demo: true,
+      booking: { code: booking.publicCode, status: booking.status, service: booking.service.name, priceMzn: booking.priceMznAtBooking },
+      balanceMzn: wallet.loadedBalanceMzn + wallet.promoBalanceMzn,
+      loadedBalanceMzn: wallet.loadedBalanceMzn,
+      promoBalanceMzn: wallet.promoBalanceMzn,
+      pointsBalance: wallet.pointsBalance,
+      movements: wallet.movements.map(({ id, type, amount, loadedAmountMzn, promoAmountMzn, description, createdAt }) => ({ id, type, amount, loadedAmountMzn, promoAmountMzn, description, createdAt })),
+    };
   }
 }

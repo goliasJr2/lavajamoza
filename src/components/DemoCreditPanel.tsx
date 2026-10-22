@@ -3,8 +3,8 @@
 import { FormEvent, useRef, useState } from "react";
 
 type WalletMode = "credit" | "loyalty";
-type Movement = { id: string; type: "LOAD" | "PAYMENT" | "POINTS_EARNED" | "POINTS_REDEEMED"; amount: number; description: string; createdAt: string };
-type Wallet = { demo: true; booking: { code: string; status: string; service: string; priceMzn: number }; balanceMzn: number; pointsBalance: number; movements: Movement[] };
+type Movement = { id: string; type: "LOAD" | "PROMO_CREDIT" | "PAYMENT" | "POINTS_EARNED" | "POINTS_REDEEMED"; amount: number; loadedAmountMzn: number; promoAmountMzn: number; description: string; createdAt: string };
+type Wallet = { demo: true; booking: { code: string; status: string; service: string; priceMzn: number }; balanceMzn: number; loadedBalanceMzn: number; promoBalanceMzn: number; pointsBalance: number; movements: Movement[] };
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 async function errorMessage(response: Response) {
@@ -68,9 +68,11 @@ export default function DemoCreditPanel({ mode = "credit" }: { mode?: WalletMode
       {!points && <section className="wallet-card">
         <div className="wallet-topline"><span>CRÉDITO LAVA JÁ · DEMONSTRAÇÃO</span><span className="demo-badge">Sem valor monetário</span></div>
         <p>Saldo demonstrativo disponível</p><strong className="wallet-amount">{(wallet?.balanceMzn ?? 0).toLocaleString("pt-MZ")} <small>MT</small></strong>
+        <div className="wallet-balance-breakdown"><span>Carregado <strong>{(wallet?.loadedBalanceMzn ?? 0).toLocaleString("pt-MZ")} MT</strong></span><span>Promocional <strong>{(wallet?.promoBalanceMzn ?? 0).toLocaleString("pt-MZ")} MT</strong></span></div>
         <span className="wallet-footnote">Não pode ser transferido, levantado ou usado fora desta demonstração.</span>
       </section>}
       {!points && <p className="field-hint">Saldo de fidelização demonstrativo: <strong>{(wallet?.pointsBalance ?? 0).toLocaleString("pt-MZ")} pontos</strong>. Pode consultar ou resgatar na área de Fidelização.</p>}
+      {!points && <p className="field-hint">Os pagamentos simulados usam primeiro o saldo promocional e depois o saldo carregado.</p>}
       {points && <section className="points-card"><div><span className="wallet-topline">PONTOS DE DEMONSTRAÇÃO</span><h2>Benefícios associados às operações simuladas.</h2><p>Os pontos são ilustrativos e não têm valor de resgate nesta versão.</p></div><div className="points-total"><strong>{(wallet?.pointsBalance ?? 0).toLocaleString("pt-MZ")}</strong><span>pontos</span></div></section>}
       {points && <section className="credit-panel"><span className="feature-icon">✦</span><h2>Recompensa demonstrativa</h2><p>Resgate 500 pontos para registar um benefício ilustrativo. Não dá direito a desconto real.</p><button className="primary-button" disabled={loading || (wallet?.pointsBalance ?? 0) < 500} onClick={() => void operate("rewards/redeem")}>Resgatar 500 pontos</button></section>}
       {!points && <div className="credit-actions">
@@ -80,7 +82,8 @@ export default function DemoCreditPanel({ mode = "credit" }: { mode?: WalletMode
       {error && <p className="feedback error" role="alert">{error}</p>}
       {notice && <p className="feedback success" role="status">{notice}</p>}
       <section className="transaction-list"><div className="section-heading section-heading-left"><p className="eyebrow">Actividade persistida</p><h2>{points ? "Pontos e movimentos" : "Movimentos da carteira"}</h2></div>
-        {wallet?.movements.length ? wallet.movements.map((movement) => <div className="loyalty-row" key={movement.id}><span className="loyalty-row-icon">{movement.type === "LOAD" || movement.type === "POINTS_EARNED" ? "+" : "−"}</span><div><strong>{movement.description}</strong><small>{new Intl.DateTimeFormat("pt-MZ", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Maputo" }).format(new Date(movement.createdAt))}</small></div><b>{movement.type === "PAYMENT" || movement.type === "POINTS_REDEEMED" ? "−" : "+"}{movement.amount.toLocaleString("pt-MZ")} {movement.type === "POINTS_EARNED" || movement.type === "POINTS_REDEEMED" ? "pts" : "MT demo"}</b></div>) : <p>Ainda não existem movimentos demonstrativos.</p>}
+        {!points && <p className="field-hint">Cada pagamento regista quanto foi descontado de cada saldo, incluindo nos detalhes devolvidos pela carteira.</p>}
+        {wallet?.movements.length ? wallet.movements.map((movement) => <div className="loyalty-row" key={movement.id}><span className="loyalty-row-icon">{movement.type === "LOAD" || movement.type === "PROMO_CREDIT" || movement.type === "POINTS_EARNED" ? "+" : "−"}</span><div><strong>{movement.description}</strong><small>{new Intl.DateTimeFormat("pt-MZ", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Maputo" }).format(new Date(movement.createdAt))}</small>{movement.type === "PAYMENT" && movement.loadedAmountMzn + movement.promoAmountMzn > 0 && <small>Promocional: {movement.promoAmountMzn.toLocaleString("pt-MZ")} MT · carregado: {movement.loadedAmountMzn.toLocaleString("pt-MZ")} MT</small>}</div><b>{movement.type === "PAYMENT" || movement.type === "POINTS_REDEEMED" ? "−" : "+"}{movement.amount.toLocaleString("pt-MZ")} {movement.type === "POINTS_EARNED" || movement.type === "POINTS_REDEEMED" ? "pts" : "MT demo"}</b></div>) : <p>Ainda não existem movimentos demonstrativos.</p>}
       </section>
       <button className="secondary-button" type="button" onClick={() => { setIdentity(null); setWallet(null); setNotice(""); setError(""); }}>Consultar outra marcação</button>
     </>}

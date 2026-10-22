@@ -22,12 +22,12 @@ enum BookingStatus {
 }
 
 model StaffUser {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String
-  role         StaffRole @default(ADMIN)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  role                StaffRole            @default(ADMIN)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
   bookingStatusEvents BookingStatusEvent[]
 }
 
@@ -42,97 +42,101 @@ model Service {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  bookings        Booking[]
+  bookings Booking[]
 
   @@index([isActive, name])
 }
 
 model Customer {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  phone     String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  phone     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  vehicles  Vehicle[]
-  bookings  Booking[]
-  demoWallet DemoWallet?
+  vehicles      Vehicle[]
+  bookings      Booking[]
+  demoWallet    DemoWallet?
   demoMovements DemoMovement[]
   notifications CustomerNotification[]
 }
 
 model Vehicle {
-  id         String    @id @default(cuid())
-  plate      String    @unique
+  id         String   @id @default(cuid())
+  plate      String   @unique
   customerId String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  bookings   Booking[]
+  customer Customer  @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  bookings Booking[]
 }
 
 model Booking {
-  id                 String        @id @default(cuid())
-  publicCode         String        @unique
-  customerId         String
-  vehicleId          String
-  serviceId          String
-  status             BookingStatus @default(REQUESTED)
-  startsAt           DateTime
-  endsAt             DateTime
-  priceMznAtBooking  Int
-  durationAtBooking  Int
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  publicCode        String        @unique
+  customerId        String
+  vehicleId         String
+  serviceId         String
+  status            BookingStatus @default(REQUESTED)
+  startsAt          DateTime
+  endsAt            DateTime
+  priceMznAtBooking Int
+  durationAtBooking Int
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
-  customer           Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  vehicle            Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
-  service            Service       @relation(fields: [serviceId], references: [id], onDelete: Restrict)
-  demoMovements      DemoMovement[]
-  notifications      CustomerNotification[]
-  statusEvents       BookingStatusEvent[]
+  customer      Customer               @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle       Vehicle                @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  service       Service                @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  demoMovements DemoMovement[]
+  notifications CustomerNotification[]
+  statusEvents  BookingStatusEvent[]
 
   @@index([startsAt, endsAt, status])
   @@index([customerId, createdAt])
 }
 
 model DemoWallet {
-  id            String   @id @default(cuid())
-  customerId    String   @unique
-  balanceMzn    Int      @default(0)
-  pointsBalance Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id               String   @id @default(cuid())
+  customerId       String   @unique
+  loadedBalanceMzn Int      @default(0)
+  promoBalanceMzn  Int      @default(0)
+  pointsBalance    Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  customer Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer  Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
   movements DemoMovement[]
 }
 
 enum DemoMovementType {
   LOAD
+  PROMO_CREDIT
   PAYMENT
   POINTS_EARNED
   POINTS_REDEEMED
 }
 
 model DemoMovement {
-  id             String           @id @default(cuid())
-  walletId       String
-  customerId     String
-  bookingId      String?
-  type           DemoMovementType
-  amount         Int
-  description    String
-  idempotencyKey String           @unique
-  createdAt      DateTime         @default(now())
+  id              String           @id @default(cuid())
+  walletId        String
+  customerId      String
+  bookingId       String?
+  type            DemoMovementType
+  amount          Int
+  loadedAmountMzn Int              @default(0)
+  promoAmountMzn  Int              @default(0)
+  description     String
+  idempotencyKey  String           @unique
+  createdAt       DateTime         @default(now())
 
-  wallet  DemoWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  customer Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  booking Booking?   @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  wallet   DemoWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  customer Customer   @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  booking  Booking?   @relation(fields: [bookingId], references: [id], onDelete: Restrict)
 
-  @@index([walletId, createdAt])
   @@unique([bookingId, type])
+  @@index([walletId, createdAt])
 }
 
 enum LocalPlaceCategory {
@@ -142,27 +146,27 @@ enum LocalPlaceCategory {
 }
 
 model LocalPlace {
-  id               String            @id @default(cuid())
-  name             String            @unique
+  id               String             @id @default(cuid())
+  name             String             @unique
   category         LocalPlaceCategory
   description      String
   estimatedMinutes Int
-  isDemo           Boolean           @default(true)
-  isActive         Boolean           @default(true)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  isDemo           Boolean            @default(true)
+  isActive         Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   @@index([isActive, category])
 }
 
 model CustomerNotification {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   customerId String
   bookingId  String?
   title      String
   message    String
   readAt     DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   booking  Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
