@@ -4,9 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:api": "npm --prefix apps/api run start:dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:up": "docker compose up -d database",
+    "db:down": "docker compose down",
+    "api:build": "npm --prefix apps/api run build",
+    "api:prisma:generate": "npm --prefix apps/api run prisma:generate",
+    "api:prisma:migrate": "npm --prefix apps/api run prisma:migrate --",
+    "api:prisma:seed": "npm --prefix apps/api run prisma:seed"
   },
   "dependencies": {
     "next": "16.4.2",

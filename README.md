@@ -4,26 +4,36 @@ Protótipo web para clientes e equipa de um único carwash: Lava Já, na Matola.
 
 ## Stack
 
-- Frontend actual: Next.js, React, TypeScript e Tailwind CSS.
-- Backend previsto: NestJS, API REST e Prisma.
+- Frontend: Next.js, React, TypeScript e Tailwind CSS (`src/`).
+- Backend: NestJS, API REST e Prisma (`apps/api/`).
 - Base de dados: PostgreSQL em Docker Compose.
 - Idioma da interface: Português de Moçambique (`pt-MZ`).
 - Cores da marca: `#03A8FB`, `#85DFFC`, `#0172D4`.
 
-O logótipo oficial será adicionado quando estiver disponível. Até lá, a aplicação apresenta uma marca textual temporária.
+O logótipo oficial será adicionado quando estiver disponível. Até lá, a aplicação apresenta uma marca textual temporária. O catálogo inicial e as credenciais de desenvolvimento são demonstrativos; ajuste os valores no `.env` antes de usar o painel.
 
 ## Arranque local
 
-Pré-requisitos: Node.js/npm e Docker com Docker Compose.
+Pré-requisitos: Node.js 22.12+ e Docker com Docker Compose.
 
 ```bash
 cp .env.example .env
-docker compose up -d database
 npm install
+npm --prefix apps/api install
+docker compose up -d database
+npm run api:prisma:generate
+npm run api:prisma:migrate
+npm run api:prisma:seed
+npm run dev:api
+```
+
+Noutro terminal, inicie o frontend:
+
+```bash
 npm run dev
 ```
 
-Abra `http://localhost:3000`. A API ainda será criada em incremento próprio, conforme o plano.
+Abra `http://localhost:3000`. A API fica disponível em `http://localhost:4000/api`. O seed cria serviços e preços de exemplo, sempre identificados como demonstrativos, e a conta administrativa configurada por `ADMIN_EMAIL`/`ADMIN_PASSWORD` no `.env`.
 
 ## Documentação do projecto
 
