@@ -55,7 +55,7 @@ O service worker não é registado pelo servidor de desenvolvimento. Em produç�
 
 O seed preserva estados de marcações e movimentos já existentes quando é executado novamente. Datas de marcações de exemplo são renovadas para permanecerem úteis numa nova demonstração.
 
-As demonstrações comerciais permanecem explicitamente fictícias: o painel separa estimativas do catálogo de pagamentos simulados e nenhuma métrica representa receita real.
+As demonstrações comerciais permanecem explicitamente fictícias: o painel separa estimativas do catálogo de pagamentos simulados e nenhuma métrica representa receita real. O guia `/ao-redor` também contém apenas locais ilustrativos, não verificados e sem afiliação. Notificações de pedidos ficam na caixa `/notificacoes` e não são enviadas por SMS, email ou push.
 
 ## Documentação do projecto
 

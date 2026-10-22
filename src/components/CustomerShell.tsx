@@ -66,7 +66,7 @@ export default function CustomerShell({
         <div className="customer-page-content" id="customer-content">{children}</div>
         <footer className="footer shell">
           <span>Lava Já Smart</span>
-          <span>Uma nova forma de cuidar do seu carro. <Link href="/marcacoes/historico">As minhas marcações</Link></span>
+          <span>Uma nova forma de cuidar do seu carro. <Link href="/marcacoes/historico">As minhas marcações</Link> · <Link href="/notificacoes">Notificações</Link> · <Link href="/ao-redor">À volta do Lava Já</Link></span>
         </footer>
       </div>
 

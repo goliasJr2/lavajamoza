@@ -137,7 +137,7 @@ export default function BookingExperience({ services, initialServiceId }: { serv
         <div><dt>Preço indicativo</dt><dd>{booking.priceMzn.toLocaleString("pt-MZ")} MT</dd></div>
       </dl>
       <p className="demo-notice">O seu pedido foi guardado pela equipa. Guarde o código e consulte o acompanhamento para ver quando a marcação for confirmada.</p>
-      <div className="editor-actions"><Link className="primary-link" href={{ pathname: "/fila", query: { code: booking.code } }}>Acompanhar pedido</Link><Link className="secondary-button" href="/marcacoes/historico">Ver as minhas marcações</Link><button className="secondary-button" onClick={() => setBooking(null)}>Nova marcação</button></div>
+      <div className="editor-actions"><Link className="primary-link" href={{ pathname: "/fila", query: { code: booking.code } }}>Acompanhar pedido</Link><Link className="secondary-button" href={{ pathname: "/notificacoes", query: { code: booking.code } }}>Ver notificações</Link><Link className="secondary-button" href="/marcacoes/historico">Ver as minhas marcações</Link><button className="secondary-button" onClick={() => setBooking(null)}>Nova marcação</button></div>
     </section>
   );
 

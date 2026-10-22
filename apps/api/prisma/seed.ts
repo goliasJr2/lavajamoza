@@ -79,7 +79,7 @@ async function main() {
   for (const sample of demoBookings) {
     const service = serviceByName[sample.service];
     if (!service) throw new Error(`Serviço de demonstração não encontrado: ${sample.service}`);
-    await prisma.booking.upsert({
+    const booking = await prisma.booking.upsert({
       where: { publicCode: sample.code },
       update: {
         customerId: customer.id, vehicleId: vehicle.id, serviceId: service.id,
@@ -94,6 +94,25 @@ async function main() {
         priceMznAtBooking: service.priceMzn, durationAtBooking: service.durationMinutes,
       },
     });
+    const notification = await prisma.customerNotification.findFirst({ where: { customerId: customer.id, bookingId: booking.id, title: "Actualização de demonstração" } });
+    if (!notification) await prisma.customerNotification.create({ data: {
+      customerId: customer.id,
+      bookingId: booking.id,
+      title: "Actualização de demonstração",
+      message: `A marcação ${sample.code} está no estado ${sample.status}. Esta é uma notificação de exemplo.`,
+    } });
+  }
+
+  const demoPlaces = [
+    { name: "Mercearia do Bairro (exemplo)", category: "SHOPS" as const, description: "Exemplo de uma loja de conveniência para visitar enquanto aguarda.", estimatedMinutes: 8 },
+    { name: "Loja de produtos locais (exemplo)", category: "SHOPS" as const, description: "Sugestão ilustrativa de comércio local na zona.", estimatedMinutes: 12 },
+    { name: "Café da Matola (exemplo)", category: "FOOD" as const, description: "Exemplo de um café para fazer uma pausa durante a visita.", estimatedMinutes: 6 },
+    { name: "Restaurante local (exemplo)", category: "FOOD" as const, description: "Sugestão ilustrativa para uma refeição nas proximidades.", estimatedMinutes: 15 },
+    { name: "Espaço de lazer familiar (exemplo)", category: "ENTERTAINMENT" as const, description: "Exemplo de entretenimento para famílias; confirme opções e horários antes de se deslocar.", estimatedMinutes: 15 },
+    { name: "Actividade cultural local (exemplo)", category: "ENTERTAINMENT" as const, description: "Sugestão fictícia que demonstra como actividades culturais poderiam ser descobertas.", estimatedMinutes: 20 },
+  ];
+  for (const place of demoPlaces) {
+    await prisma.localPlace.upsert({ where: { name: place.name }, update: {}, create: { ...place, isDemo: true } });
   }
 
   const wallet = await prisma.demoWallet.upsert({
@@ -113,6 +132,7 @@ async function main() {
   });
 
   console.info("Dados demo criados. Cliente: 84 123 4567; marcações: LAVA1001, LAVA1002, LAVA1003.");
+  console.info("Guia local: 6 sugestões fictícias entre lojas, alimentação e entretenimento; nenhuma é afiliada.");
 }
 
 main()

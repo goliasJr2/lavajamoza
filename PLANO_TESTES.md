@@ -158,6 +158,18 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 7. Layout principal funciona em largura móvel e desktop.
 8. Saldos, pagamentos, pontos, opções Moza e cenários de parceiros têm indicação de demonstração; nenhum fluxo chama fornecedores financeiros.
 
+## Fase 7 — Guia local e notificações na aplicação
+
+| Área | Cenário | Resultado esperado |
+|---|---|---|
+| API | Consultar o guia local | Apenas sugestões activas de demonstração são devolvidas; categoria e ordem são válidas |
+| Frontend | Filtrar lojas, cafés e entretenimento, incluindo lista vazia | Os filtros funcionam e os exemplos permanecem identificados como não verificados/não afiliados |
+| Privacidade | Consultar notificações com código/telefone válidos e inválidos | Dados aparecem apenas após correspondência; erro não confirma se outro telefone/código existe |
+| API | Criar uma marcação e depois aceitar, iniciar e concluir | Cada evento gera notificação persistida associada à marcação e ao cliente; mudança de estado e notificação são atómicas |
+| API | Marcar notificações como lidas com identidade válida/inválida | Apenas as notificações do cliente verificado são actualizadas |
+| Frontend | Abrir caixa, actualizar, aguardar sincronização e marcar como lidas | Contagem, estado lido e estados de erro reflectem as respostas da API |
+| Integração | Usar guia e caixa de notificações | Não são feitas chamadas a mapas, localização, SMS, email ou push de sistema |
+
 ## Fora da matriz actual
 
 Não testar liquidação real entre carwash, custódia de dinheiro, carregamentos ou pagamentos reais por M-Pesa/e-Mola/Moza, nem adesão efectiva de afiliados. Testar apenas as simulações e verificar que não fazem chamadas financeiras externas. Antes de uma implementação real, criar casos de teste, requisitos de reconciliação e análise de segurança próprios.

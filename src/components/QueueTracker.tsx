@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 
 type Booking = {
   code: string;
@@ -75,6 +76,7 @@ export default function QueueTracker({ initialCode = "" }: { initialCode?: strin
       })}</ol> : <p className="demo-notice">{booking.status === "REJECTED" ? "A equipa não conseguiu confirmar este pedido. Contacte o Lava Já para mais informações." : "Este pedido foi cancelado."}</p>}
       <dl className="booking-receipt"><div><dt>Cliente</dt><dd>{booking.customerName}</dd></div><div><dt>Serviço</dt><dd>{booking.durationMinutes} min · {booking.priceMzn.toLocaleString("pt-MZ")} MT indicativos</dd></div></dl>
       <p className="field-hint">O estado é actualizado pela equipa. Consulte novamente esta página para ver alterações recentes.</p>
+      <Link className="secondary-button" href={{ pathname: "/notificacoes", query: { code: booking.code } }}>Ver notificações deste pedido</Link>
     </section>}
   </>;
 }

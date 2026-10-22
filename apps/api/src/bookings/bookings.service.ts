@@ -141,6 +141,13 @@ export class BookingsService {
           include: { service: { select: { name: true } }, vehicle: { select: { plate: true } } },
         });
 
+        await tx.customerNotification.create({ data: {
+          customerId: customer.id,
+          bookingId: booking.id,
+          title: "Pedido de pré-marcação recebido",
+          message: `Recebemos o pedido ${booking.publicCode}. A equipa vai confirmar a disponibilidade.`,
+        } });
+
         return {
           code: booking.publicCode,
           status: booking.status,
@@ -262,45 +269,52 @@ export class BookingsService {
   }
 
   async updateRequestStatus(id: string, status: "ACCEPTED" | "REJECTED") {
-    const result = await this.prisma.booking.updateMany({
-      where: { id, status: "REQUESTED" },
-      data: { status },
-    });
-    if (result.count === 0) {
-      const existing = await this.prisma.booking.findUnique({ where: { id }, select: { id: true } });
-      if (!existing) throw new NotFoundException("Marcação não encontrada.");
-      throw new ConflictException("Este pedido já foi tratado e não pode ser alterado nesta etapa.");
-    }
-    return this.prisma.booking.findUniqueOrThrow({
-      where: { id },
-      include: {
-        service: { select: { name: true } },
-        vehicle: { select: { plate: true } },
-        customer: { select: { name: true, phone: true } },
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const result = await tx.booking.updateMany({ where: { id, status: "REQUESTED" }, data: { status } });
+      if (result.count === 0) {
+        const existing = await tx.booking.findUnique({ where: { id }, select: { id: true } });
+        if (!existing) throw new NotFoundException("Marcação não encontrada.");
+        throw new ConflictException("Este pedido já foi tratado e não pode ser alterado nesta etapa.");
+      }
+      const booking = await tx.booking.findUniqueOrThrow({ where: { id }, include: {
+        service: { select: { name: true } }, vehicle: { select: { plate: true } },
+        customer: { select: { id: true, name: true, phone: true } },
+      } });
+      await tx.customerNotification.create({ data: {
+        customerId: booking.customer.id, bookingId: booking.id,
+        title: status === "ACCEPTED" ? "Pré-marcação aceite" : "Pré-marcação não aceite",
+        message: status === "ACCEPTED"
+          ? `A equipa aceitou o pedido ${booking.publicCode}. Consulte o acompanhamento para ver as próximas actualizações.`
+          : `A equipa não conseguiu aceitar o pedido ${booking.publicCode}. Contacte o Lava Já para mais informações.`,
+      } });
+      return booking;
     });
   }
 
   async updateOperationalStatus(id: string, status: "IN_PROGRESS" | "COMPLETED") {
     const fromStatus: BookingStatus = status === "IN_PROGRESS" ? "ACCEPTED" : "IN_PROGRESS";
-    const result = await this.prisma.booking.updateMany({
-      where: { id, status: fromStatus },
-      data: { status },
-    });
-    if (result.count === 0) {
-      const existing = await this.prisma.booking.findUnique({ where: { id }, select: { id: true } });
-      if (!existing) throw new NotFoundException("MarcaÃ§Ã£o nÃ£o encontrada.");
-      throw new ConflictException(status === "IN_PROGRESS"
-        ? "Apenas uma marcaÃ§Ã£o aceite pode iniciar atendimento."
-        : "Apenas uma marcaÃ§Ã£o em atendimento pode ser concluÃ­da.");
-    }
-    return this.prisma.booking.findUniqueOrThrow({
-      where: { id },
-      include: {
-        service: { select: { name: true } },
-        vehicle: { select: { plate: true } },
-        customer: { select: { name: true, phone: true } },
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const result = await tx.booking.updateMany({ where: { id, status: fromStatus }, data: { status } });
+      if (result.count === 0) {
+        const existing = await tx.booking.findUnique({ where: { id }, select: { id: true } });
+        if (!existing) throw new NotFoundException("Marcação não encontrada.");
+        throw new ConflictException(status === "IN_PROGRESS"
+          ? "Apenas uma marcação aceite pode iniciar atendimento."
+          : "Apenas uma marcação em atendimento pode ser concluída.");
+      }
+      const booking = await tx.booking.findUniqueOrThrow({
+        where: { id },
+        include: {
+          service: { select: { name: true } },
+          vehicle: { select: { plate: true } },
+          customer: { select: { id: true, name: true, phone: true } },
+        },
+      });
+      const notification = status === "IN_PROGRESS"
+        ? { title: "Atendimento iniciado", message: `A lavagem da viatura ${booking.vehicle.plate} começou no Lava Já.` }
+        : { title: "Serviço concluído", message: `O serviço ${booking.service.name} para a viatura ${booking.vehicle.plate} foi concluído.` };
+      await tx.customerNotification.create({ data: { customerId: booking.customer.id, bookingId: booking.id, ...notification } });
+      return booking;
     });
   }
 }

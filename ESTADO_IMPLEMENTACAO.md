@@ -21,13 +21,15 @@ Este documento compara o prompt de interfaces (`PROMPT_IMPLEMENTACAO_INTERFACES.
 
 | Requisito no prompt | Estado | Implementação encontrada / lacuna |
 |---|---|---|
-| Página inicial | 🟡 | `src/app/page.tsx` apresenta o catálogo vindo da API, acesso à pré-marcação e cartões para fila/crédito. Contactos, horário e campanhas reais não estão ligados. |
+| Página inicial | 🟡 | `src/app/page.tsx` apresenta o catálogo vindo da API, acesso à pré-marcação e cartões para fila, crédito demonstrativo, guia local e notificações. Contactos, horário e campanhas reais não estão ligados. |
 | Registo de cliente | ⬜ | Não existe rota de registo. O backend cria/localiza o cliente durante a pré-marcação através do nome e telefone. |
 | Login de cliente | ⬜ | Não existe autenticação de cliente. |
 | Consulta de serviços | ✅ | Catálogo da API, preços/duração, estados de erro/vazio e acesso directo à pré-marcação. Gestão administrativa dos serviços também existe. |
 | Nova pré-marcação | ✅ | `/marcacoes` recolhe cliente, viatura, serviço e horário disponível; pedido fica persistido no PostgreSQL como pendente de validação da equipa. |
 | Confirmação do pedido | 🟡 | O formulário apresenta resultado/código devolvido pela API; ainda não existe página própria de confirmação. Pedido permanece pendente até aceitação. |
 | Minhas marcações / histórico | 🟡 | `/marcacoes/historico` lista até 50 marcações associadas ao contacto depois de verificar um código e telefone correspondentes. Não há conta de cliente; a consulta requer uma marcação de referência. |
+| Guia local e entretenimento | 🟡 | `/ao-redor` lista sugestões fictícias em três categorias, servidas pela API e guardadas no PostgreSQL. Não são estabelecimentos verificados nem afiliados; não há mapas ou localização. |
+| Notificações do cliente | 🟡 | `/notificacoes` valida código e telefone, lista actualizações persistidas da marcação, permite marcá-las como lidas e sincroniza a página aberta. Sem SMS, email ou push de sistema. |
 | Cartão virtual e QR | ⬜ | Não implementados. |
 | Carteira demonstrativa | 🟡 | `/credito` está ligado à API: carregamento simulado fixo de 500 MT, pagamento pelo valor guardado da marcação aceite/concluída, histórico persistido e idempotência. Saldo não representa dinheiro. |
 | Fidelização | 🟡 | `/fidelizacao` mostra pontos persistidos por pagamento simulado e permite resgatar 500 pontos por benefício ilustrativo. Sem desconto real. |
@@ -59,6 +61,15 @@ Este documento compara o prompt de interfaces (`PROMPT_IMPLEMENTACAO_INTERFACES.
 | PWA instalável e offline | 🟡 | Service worker só em produção; cache cobre recursos estáticos públicos e página offline, sem guardar HTML nem `/api`. Instalação/dispositivo ainda por validar. |
 | Dados financeiros claramente fictícios | ✅ | Carteira identifica operações simuladas e esclarece que não está ligada ao Moza Banco, M-Pesa ou e-Mola. |
 
+## Incremento recente — guia local e notificações
+
+| Área | Estado | Implementação e limites |
+|---|---|---|
+| Sugestões à volta do Lava Já | 🟡 | `/ao-redor` mostra exemplos de lojas, alimentação e entretenimento guardados na base de dados, com filtros e aviso de não verificação/não afiliação. Não são locais reais confirmados nem há mapas ou afiliados. |
+| Notificações do cliente | 🟡 | `/notificacoes` consulta registos persistidos após validar código e telefone, permite marcar como lidos e sincroniza enquanto a página fica aberta. Criação da marcação e transições de estado geram notificações. Não há SMS, email ou push de sistema. |
+
+O próximo passo é validar estes fluxos na demonstração com dados do seed. Integração com locais reais ou serviços de mensagens externos requer decisão e configuração próprias.
+
 ## Logótipos adicionados
 
 - `public/brand/lava-ja-horizontal.svg` — utilizado na sidebar e no cabeçalho mobile.
@@ -66,10 +77,8 @@ Este documento compara o prompt de interfaces (`PROMPT_IMPLEMENTACAO_INTERFACES.
 
 ## Próximos passos sugeridos
 
-1. Criar uma lista de marcações do cliente e confirmação dedicada, mantendo a consulta sem conta via código e telefone.
-2. Implementar cartão QR de identificação sem capacidade de autorizar débitos.
-3. Ligar fidelização a regras e registos na API; manter a carteira explicitamente simulada e definir como se registam operações fictícias.
-4. Implementar PWA básica com manifesto, ícones, cache apenas de recursos públicos e fallback offline.
-5. Acrescentar dashboard e estatísticas depois de existir histórico operacional suficiente.
+1. Validar os fluxos recentes em dispositivos/navegadores de demonstração e rever o conteúdo ilustrativo com avaliadores.
+2. Implementar cartão QR de identificação sem capacidade de autorizar débitos, caso seja prioritário.
+3. Acrescentar dashboard e estatísticas depois de existir histórico operacional suficiente.
 
 O documento original continua como referência de requisitos; este estado deve ser actualizado à medida que cada fluxo passa de demonstrativo para persistido e utilizável.

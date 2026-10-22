@@ -109,6 +109,16 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 - Notificações e indicadores adicionais se houver tempo e necessidade validada.
 - Integrações financeiras reais, custódia de saldos, liquidação, múltiplos operadores e afiliados exigem nova decisão de escopo, validação comercial/jurídica e desenho de segurança. Permanecem fora do protótipo.
 
+### Fase 7 — Guia local demonstrativo e notificações na aplicação
+
+**Âmbito:** apoiar a experiência durante a visita ao Lava Já, sem introduzir afiliados. As lojas, cafés, entretenimento, descrições e tempos apresentados são exemplos fictícios, não verificados e sem associação comercial. Não usar mapas, localização do dispositivo ou dados de estabelecimentos reais.
+
+**Backend:** adicionar catálogo demonstrativo de locais e notificações persistidas para recepção e transições da marcação. A consulta da caixa exige código de marcação e telefone correspondente; marcar como lidas requer a mesma verificação. Gravar a notificação e a transição de estado na mesma transacção.
+
+**Frontend:** criar `/ao-redor` com filtros de categoria, indicação explícita de dados ilustrativos e estados de erro/vazio; criar `/notificacoes` com consulta segura, actualização periódica enquanto aberta, leitura e ligação ao acompanhamento. Disponibilizar atalhos na página inicial, confirmação e acompanhamento. Notificações são apenas internas à aplicação; sem SMS, email ou push de sistema.
+
+**Critério de conclusão:** dados de exemplo vêm da API e persistem na base de dados; cada evento relevante do pedido gera uma notificação; erro de rede/identidade não revela dados; nenhum serviço externo é chamado.
+
 ## Critério de sucesso do MVP
 
 Um cliente consulta os serviços do Lava Já, envia uma pré-marcação válida, recebe a confirmação da API e acompanha o estado. Um funcionário autenticado consulta essa marcação no painel e actualiza o atendimento. O protótipo também demonstra o Crédito Lava Já, um pagamento e a fidelização através de movimentos fictícios persistidos no PostgreSQL, sempre identificados como demonstração. Erros de rede ou validação não são apresentados como sucesso e nenhuma operação é apresentada como pagamento real.

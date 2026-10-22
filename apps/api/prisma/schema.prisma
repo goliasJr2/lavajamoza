@@ -57,6 +57,7 @@ model Customer {
   bookings  Booking[]
   demoWallet DemoWallet?
   demoMovements DemoMovement[]
+  notifications CustomerNotification[]
 }
 
 model Vehicle {
@@ -88,6 +89,7 @@ model Booking {
   vehicle            Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
   service            Service       @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   demoMovements      DemoMovement[]
+  notifications      CustomerNotification[]
 
   @@index([startsAt, endsAt, status])
   @@index([customerId, createdAt])
@@ -129,4 +131,40 @@ model DemoMovement {
 
   @@index([walletId, createdAt])
   @@unique([bookingId, type])
+}
+
+enum LocalPlaceCategory {
+  SHOPS
+  FOOD
+  ENTERTAINMENT
+}
+
+model LocalPlace {
+  id               String            @id @default(cuid())
+  name             String            @unique
+  category         LocalPlaceCategory
+  description      String
+  estimatedMinutes Int
+  isDemo           Boolean           @default(true)
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([isActive, category])
+}
+
+model CustomerNotification {
+  id         String   @id @default(cuid())
+  customerId String
+  bookingId  String?
+  title      String
+  message    String
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  booking  Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([customerId, createdAt])
+  @@index([customerId, readAt])
 }
