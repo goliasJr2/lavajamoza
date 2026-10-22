@@ -1,0 +1,21 @@
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: lava-ja-smart-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-lavaja}
+      POSTGRES_USER: ${POSTGRES_USER:-lavaja}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lavaja_local}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - lava_ja_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lavaja} -d ${POSTGRES_DB:-lavaja}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  lava_ja_postgres_data:
