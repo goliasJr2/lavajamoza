@@ -21,13 +21,14 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | Docker | Iniciar o serviço `database` e consultar healthcheck | Container fica saudável e PostgreSQL aceita conexão |
 | Persistência | Criar dado de teste, reiniciar apenas o container e consultar novamente | Dado permanece no volume nomeado |
 | Configuração | Verificar `.gitignore` e ficheiros de ambiente | `.env` e credenciais locais não são versionados |
-| API (quando criada) | Consultar health check com API activa e indisponível | Interface distingue serviço disponível de erro de conexão |
+| API | Consultar `/api/health` com API e PostgreSQL disponíveis ou indisponíveis | Retorna estado da API/base de dados ou erro de conexão |
 
 ## Fase 1 — Acesso administrativo e catálogo
 
 | Tipo | Cenário | Resultado esperado |
 |---|---|---|
 | API | Consultar catálogo público com serviços activos | Resposta inclui apenas dados publicados e válidos |
+| API | Consultar `/api/services` sem token | Lista serviços activos; não expõe serviços inactivos |
 | API | Criar/editar/desactivar serviço como funcionário autorizado | Alteração validada e persistida |
 | Segurança | Aceder a endpoint administrativo sem sessão ou como cliente | Resposta não autorizada; nenhum dado é alterado |
 | Validação | Enviar preço negativo, duração inválida ou campos em falta | Erro de validação previsível; sem gravação parcial |
@@ -35,6 +36,8 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | Ponta a ponta | Funcionário altera serviço e cliente abre o catálogo | Cliente vê o valor persistido mais recente |
 
 ## Fase 2 — Viatura e pré-marcação
+
+**Estado actual do frontend:** formulário visual com validação nativa do navegador e pré-visualização local. A submissão mostra uma confirmação de simulação, sem criar marcação. Os casos abaixo de persistência e confirmação API ficam pendentes até ao incremento backend.
 
 | Tipo | Cenário | Resultado esperado |
 |---|---|---|
@@ -47,6 +50,8 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 
 ## Fase 3 — Fila e estado do atendimento
 
+**Estado actual do frontend:** linha temporal com cenário inteiramente fictício, identificado no ecrã. Não validar como dado operacional.
+
 | Tipo | Cenário | Resultado esperado |
 |---|---|---|
 | Unitário/API | Percorrer transições permitidas | Estado muda conforme as regras de domínio |
@@ -57,6 +62,8 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | Ponta a ponta | Funcionário avança atendimento e cliente consulta novamente | Cliente recebe o estado persistido e actualizado |
 
 ## Fase 4 — Crédito Lava Já, pagamentos demonstrativos e fidelização
+
+**Estado actual do frontend:** carregamentos e pagamentos alteram apenas o saldo React durante a sessão; pontos e recompensa são exemplos estáticos. Confirmar visualmente os avisos de demonstração e verificar que actualizar a página repõe o saldo inicial. Persistência API permanece pendente.
 
 | Tipo | Cenário | Resultado esperado |
 |---|---|---|

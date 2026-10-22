@@ -19,9 +19,9 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 ## Base técnica actual
 
-- Frontend: Next.js, React e TypeScript no projecto existente.
-- Backend planeado: NestJS com API REST e TypeScript.
-- Persistência planeada: PostgreSQL + Prisma; PostgreSQL é iniciado por `docker-compose.yml`.
+- Frontend: Next.js, React, TypeScript e Tailwind CSS na raiz do projecto (`src/`).
+- Backend: NestJS com API REST e TypeScript em `apps/api/`.
+- Persistência: PostgreSQL + Prisma; PostgreSQL é iniciado por `docker-compose.yml` na porta local 5433.
 - Validação: validar no backend todos os dados recebidos. Partilhar tipos/schemas só quando houver necessidade concreta.
 - Repositório: manter a estrutura actual durante a fundação. A conversão para monorepo não é requisito do MVP e só deve ser feita se trouxer benefício directo.
 - PWA: preparar depois de os fluxos principais estarem funcionais; não prometer funcionamento offline de marcações ou estados.
@@ -35,20 +35,24 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 - Definir tokens de cor globais, idioma `pt-MZ`, metadados e identidade temporária no frontend.
 - Substituir a página inicial padrão por uma página de apresentação alinhada ao único carwash.
 - Disponibilizar PostgreSQL com volume persistente e healthcheck através de Docker Compose.
+- Criar a API NestJS separada em `apps/api`, com Prisma e endpoint de health check.
 - Documentar a configuração local e manter segredos fora do controlo de versão.
-- Na sequência, iniciar a API NestJS e configurar Prisma, conexão à base de dados, migrações e endpoint de health check.
 
 **Entrega conjunta API + interface:** estado de ligação/indisponibilidade da API tratado na interface; sem expor detalhes internos ou apresentar dados fictícios como confirmados.
 
 ### Fase 1 — Acesso administrativo e catálogo de serviços
 
-**Backend:** configurar NestJS, módulo de autenticação para funcionários, protecção de rotas administrativas, modelo de serviço e endpoints de consulta e gestão de serviços. Criar dados iniciais do Lava Já por seed.
+**Estado:** primeira versão implementada; requer migração e seed locais antes da utilização. O catálogo público, o login administrativo e a gestão protegida estão ligados à API.
 
-**Frontend:** construir catálogo público de serviços, preços e duração estimada; criar ecrã administrativo para gerir serviços. O cliente pode consultar sem autenticação; operações de gestão exigem sessão e permissão de funcionário.
+**Backend:** API NestJS em `apps/api`, autenticação JWT para administrador, protecção de rotas administrativas, modelos Prisma de equipa e serviço, endpoint de health check, consulta pública e operações protegidas de criação/edição/activação de serviços. O seed cria uma conta administrativa e preços de exemplo.
+
+**Frontend:** catálogo público ligado à API, com estados de erro e catálogo vazio; ecrã administrativo de login e gestão de serviços ligado aos endpoints protegidos. Preços iniciais estão marcados como demonstrativos.
 
 **Concluído quando:** os serviços apresentados ao cliente vêm da API e uma alteração administrativa persistida aparece no catálogo.
 
 ### Fase 2 — Viatura e pré-marcação
+
+**Estado:** ecrã demonstrativo implementado; submissão ainda não persistida na API. A interface permite visualizar os campos, serviço, duração e preço, mas identifica explicitamente que não cria uma reserva.
 
 **Backend:** modelos mínimos de cliente/viatura e marcação; endpoints para criar e consultar marcações; validar serviço activo, campos, horário, disponibilidade e duplicação. Definir estados iniciais e política de cancelamento simples.
 
@@ -58,6 +62,8 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 ### Fase 3 — Fila e estado do atendimento
 
+**Estado:** vista conceptual implementada com dados fictícios. Não representa uma fila operacional nem recebe estados do backend.
+
 **Backend:** gerir a fila e transições de estado permitidas (por exemplo: aguardando, em atendimento, concluído e cancelado); registar quem fez cada alteração e impedir transições inválidas.
 
 **Frontend:** painel operacional simples para a equipa actualizar a fila; cliente consegue ver o estado actual da sua marcação. Actualizar os dados a partir da API e indicar quando não foi possível confirmar uma alteração.
@@ -65,6 +71,8 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 **Concluído quando:** uma mudança de estado feita pela equipa é persistida e visível ao cliente, sem permitir estados incompatíveis.
 
 ### Fase 4 — Crédito Lava Já, pagamentos demonstrativos e fidelização
+
+**Estado:** ecrãs de protótipo implementados. O saldo de Crédito Lava Já pode ser alterado localmente na sessão para demonstrar carregamento e pagamento; fidelização apresenta pontos e recompensa de exemplo. Nada é persistido ou enviado para bancos, carteiras ou API.
 
 **Backend:** criar saldo demonstrativo separado por tipo (saldo carregado simulado e crédito promocional), movimentos imutáveis de crédito/débito, pontos de fidelização e registo de pagamentos simulados. Implementar confirmação idempotente e impedir saldo negativo. Criar dados de demonstração para o Moza Banco e para cenários de expansão, sem chamadas externas nem liquidação financeira.
 
