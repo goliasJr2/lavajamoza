@@ -35,6 +35,15 @@ npm run dev
 
 Abra `http://localhost:3000`. A API fica disponível em `http://localhost:4000/api`. O seed é repetível e cria serviços, conta administrativa, cliente/viatura, três marcações, carteira demonstrativa e pontos. A conta administrativa usa `ADMIN_EMAIL`/`ADMIN_PASSWORD` do `.env` (valores locais de exemplo disponíveis em `.env.example`).
 
+Para validar instalação e service worker, execute também a versão de produção em localhost:
+
+```bash
+npm run build
+npm run start
+```
+
+O service worker não é registado pelo servidor de desenvolvimento. Em produção, só coloca em cache recursos estáticos públicos, ícones e a página offline; não guarda páginas da aplicação nem respostas da API. Em iOS, abra no Safari e use Partilhar → Adicionar ao ecrã principal.
+
 ### Dados de demonstração
 
 - Cliente: `84 123 4567`; viatura: `ABC123MC`.

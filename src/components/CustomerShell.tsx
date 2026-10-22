@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import PwaInstallButton from "@/components/PwaInstallButton";
 
 function BrandLogo({ vertical = false }: { vertical?: boolean }) {
   return <Image
@@ -47,6 +48,7 @@ export default function CustomerShell({
           ))}
         </nav>
         <div className="sidebar-bottom">
+          <PwaInstallButton />
           <div className="sidebar-location"><span className="open-dot" /><div><strong>Lava Já</strong><small>Matola, Moçambique</small></div></div>
           <Link className="sidebar-admin-link" href="/admin"><span aria-hidden="true">↗</span> Área da equipa</Link>
         </div>
@@ -57,6 +59,7 @@ export default function CustomerShell({
           <Link className="wordmark" href="/" aria-label="Lava Já Smart, início"><BrandLogo /></Link>
           <div className="mobile-header-actions">
             <span className="customer-location"><span className="open-dot" />Matola</span>
+            <PwaInstallButton />
             <Link className="mobile-admin-link" href="/admin">Equipa</Link>
           </div>
         </header>

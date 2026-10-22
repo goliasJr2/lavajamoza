@@ -14,7 +14,7 @@ Este documento compara o prompt de interfaces (`PROMPT_IMPLEMENTACAO_INTERFACES.
 | Fluxo cliente: serviços e pedido | 🟡 | Catálogo e pré-marcação persistida funcionam; ainda não há conta de cliente nem área de histórico autenticada. |
 | Fluxo operacional da equipa | 🟡 | Login de equipa, catálogo e decisão de aceitar/rejeitar pedidos existem. A fila não actualiza estados até à conclusão. |
 | Crédito e fidelização | 🟡 | Carteira, carregamentos fixos, pagamento de marcação aceite/concluída e pontos/resgate são persistidos como demonstração. Não existe qualquer integração financeira; painel interno e separação de saldo promocional/carregado continuam pendentes. |
-| PWA | ⬜ | Não foram encontrados manifesto, service worker, ícones de instalação ou experiência offline. |
+| PWA | 🟡 | Manifesto, ícones PNG/SVG, instalação no browser, instrução iOS e fallback offline existem. Falta validação em dispositivos/navegadores reais. |
 | Pagamentos, cartão QR, métricas e promoções | 🟡 | Pagamento simulado de serviço existe; cartão QR, métricas e promoções não estão implementados. |
 
 ## Ecrãs e fluxos do cliente
@@ -56,7 +56,7 @@ Este documento compara o prompt de interfaces (`PROMPT_IMPLEMENTACAO_INTERFACES.
 | Protecção administrativa | ✅ | Autenticação e autorização aplicadas no backend às operações administrativas. |
 | Estados de carregamento/erro/vazio | 🟡 | Existem nos fluxos de catálogo, formulário e pedidos; ainda não há estados para ecrãs que não foram construídos. |
 | Confirmação e feedback acessíveis | 🟡 | Formulários mostram mensagens; ainda faltam diálogos de confirmação para acções administrativas relevantes. |
-| PWA instalável e offline | ⬜ | Manifesto, service worker, cache controlada e fallback offline por criar. |
+| PWA instalável e offline | 🟡 | Service worker só em produção; cache cobre recursos estáticos públicos e página offline, sem guardar HTML nem `/api`. Instalação/dispositivo ainda por validar. |
 | Dados financeiros claramente fictícios | ✅ | Carteira identifica operações simuladas e esclarece que não está ligada ao Moza Banco, M-Pesa ou e-Mola. |
 
 ## Logótipos adicionados

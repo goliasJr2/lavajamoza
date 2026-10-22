@@ -87,6 +87,19 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | Frontend | Abrir histórico e submeter credenciais válidas | Apresenta estados e dados devolvidos pela API |
 | Frontend | API indisponível ou credenciais inválidas | Erro claro sem mostrar dados antigos como resultado actual |
 | Ponta a ponta | Criar duas marcações com o mesmo contacto e consultar o histórico por uma delas | Ambas aparecem; uma marcação de outro telefone não aparece |
+
+## Fase 6 — PWA e modo sem ligação
+
+| Tipo | Cenário | Resultado esperado |
+|---|---|---|
+| Manifesto | Abrir `/manifest.webmanifest` | Nome, idioma, escopo, cores, modo standalone e ícones 192/512 válidos |
+| Instalação | Abrir em Chrome/Edge num contexto HTTPS ou localhost | Browser oferece instalação e botão da aplicação chama o prompt nativo |
+| Instalação | Abrir em Safari no iOS | Instrução “Partilhar → Adicionar ao ecrã principal” fica acessível |
+| Service worker | Abrir em desenvolvimento | Service worker não é registado |
+| Cache | Inspeccionar cache depois de usar a aplicação | Só página offline, ícones, logo, recursos estáticos versionados; sem HTML/rotas ou dados pessoais |
+| Segurança | Navegar/consultar API com sessão/autorização e desligar rede | Nenhuma resposta `/api` ou conteúdo privado é servido da cache |
+| Offline | Abrir uma rota sem rede após instalar | Página offline explica indisponibilidade e não afirma que dados/alterações foram guardados |
+| Actualização | Publicar versão com nova cache name/service worker | Versão antiga é removida e recursos estáticos da versão nova podem carregar |
 | API/segurança | Consultar o resumo operacional sem token ou com utilizador sem papel ADMIN | Acesso não autorizado/proibido |
 | API | Consultar resumo com marcações e pagamentos simulados em dias diferentes | Contagens, estados da fila, valores indicativos e pagamentos do dia usam o intervalo de Maputo correcto |
 | API | Consultar resumo sem dados | Contagens/valores iguais a zero e lista recente vazia |

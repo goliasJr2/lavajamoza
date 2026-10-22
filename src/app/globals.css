@@ -782,6 +782,13 @@ a {
 .mobile-bottom-nav { display: none; }
 .customer-location { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
 .open-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a66a; }
+.install-app-button { min-height: 34px; padding: 0 10px; border: 1px solid #b9def4; border-radius: 9px; background: #eff9ff; color: var(--brand-deep); font-size: 10px; font-weight: 750; cursor: pointer; }
+.install-app-button:hover { background: #e1f4ff; }
+.install-app-help { position: relative; color: var(--brand-deep); font-size: 10px; font-weight: 700; }
+.install-app-help summary { cursor: pointer; }
+.install-app-help p { position: absolute; z-index: 30; top: 100%; right: 0; width: 230px; margin: 9px 0 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: white; box-shadow: 0 8px 25px rgb(16 42 67 / 12%); color: var(--foreground); font-size: 11px; font-weight: 400; line-height: 1.5; }
+.sidebar-bottom > .install-app-button,
+.sidebar-bottom > .install-app-help { margin: 0 8px 4px; }
 
 .feature-grid,
 .info-grid {
@@ -1400,6 +1407,8 @@ select:focus-visible {
   .customer-mobile-header .wordmark { gap: 8px; }
   .customer-mobile-header .brand-logo { width: 126px; }
   .mobile-header-actions { display: flex; align-items: center; gap: 10px; }
+  .mobile-header-actions .install-app-button { min-height: 30px; padding: 0 7px; font-size: 9px; }
+  .mobile-header-actions .install-app-help { font-size: 9px; }
   .mobile-header-actions .customer-location { gap: 6px; font-size: 10px; }
   .mobile-header-actions .open-dot { width: 7px; height: 7px; }
   .mobile-admin-link { color: var(--brand-deep); font-size: 11px; font-weight: 700; text-decoration: none; }

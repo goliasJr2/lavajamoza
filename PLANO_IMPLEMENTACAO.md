@@ -94,8 +94,11 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 ### Fase 6 — PWA e validação de demonstração
 
-- Configurar manifesto, ícones provisórios e comportamento instalável. Substituir ícones pelo material de marca quando estiver disponível.
-- Tratar perda de ligação de forma explícita; não confirmar offline uma marcação, alteração de fila ou pagamento.
+**Estado:** manifesto, ícones 192/512 e Apple Touch, registo do service worker em produção, instalação assistida (incluindo instrução para iOS) e fallback offline implementados. O service worker guarda apenas página offline e recursos estáticos públicos; nunca guarda HTML de aplicação nem respostas `/api`. Validação final de instalação em navegadores/dispositivos reais continua pendente.
+
+- [x] Configurar manifesto, ícones de instalação e comportamento instalável.
+- [x] Tratar navegação sem ligação com página de indisponibilidade; não confirmar offline uma marcação, alteração de fila ou pagamento.
+- [ ] Validar instalação e comportamento offline em navegadores/dispositivos de demonstração.
 - Preparar dados de demonstração e percorrer o fluxo cliente → API → painel → estado actualizado.
 - Preparar uma demonstração curta para avaliadores: escolha de serviço, pré-marcação, crédito carregado por um meio simulado (Moza ou outro), pagamento simulado, pontos recebidos e painel operacional com indicadores de exemplo.
 - Mostrar uma visão conceptual de expansão para parceiros como cenário futuro, sem os apresentar como afiliados activos nem permitir transacções entre comerciantes.
