@@ -20,17 +20,16 @@ const primaryNavigation = [
   { href: "/", label: "Serviços", mobileLabel: "Serviços", icon: "⌂" },
   { href: "/marcacoes", label: "Pré-marcação", mobileLabel: "Marcar", icon: "+" },
   { href: "/fila", label: "Acompanhar", mobileLabel: "Fila", icon: "◷" },
-  { href: "/perfil", label: "Perfil", mobileLabel: "Perfil", icon: "◉" },
+  { href: "/servicos-locais", label: "Serviços locais", mobileLabel: "Serviços locais", icon: "⌖" },
 ];
 
 const extraNavigation = [
   { href: "/cartao", label: "Cartão virtual", icon: "▦" },
+  { href: "/perfil", label: "Perfil", icon: "◉" },
   { href: "/credito", label: "Crédito Lava Já", icon: "◉" },
   { href: "/fidelizacao", label: "Fidelização", icon: "✦" },
-  { href: "/marketplace", label: "Marketplace", icon: "◈" },
   { href: "/notificacoes", label: "Notificações", icon: "◌" },
   { href: "/marcacoes/historico", label: "Histórico de marcações", icon: "◷" },
-  { href: "/ao-redor", label: "À volta do Lava Já", icon: "⌖" },
 ];
 
 export default function CustomerShell({ children, active }: { children: React.ReactNode; active: string }) {
@@ -67,7 +66,7 @@ export default function CustomerShell({ children, active }: { children: React.Re
             <span className="sidebar-icon" aria-hidden="true">{item.icon}</span><span>{item.label}</span>
           </Link>)}
         </nav>
-        <details className="sidebar-extra-details" open={menuOpen || undefined}>
+        <details className="sidebar-extra-details" open={menuOpen || extraNavigation.some((item) => item.href === active) || undefined}>
           <summary>Mais funcionalidades</summary>
           <nav className="sidebar-navigation sidebar-extra-navigation" aria-label="Mais funcionalidades">
             {extraNavigation.map((item) => <Link className={`sidebar-link${active === item.href ? " active" : ""}`} href={item.href} key={item.href} aria-current={active === item.href ? "page" : undefined} onClick={closeMenu}>
@@ -92,7 +91,7 @@ export default function CustomerShell({ children, active }: { children: React.Re
         <div className="customer-page-content" id="customer-content">{children}</div>
         <footer className="footer shell">
           <span>Lava Já Smart</span>
-          <span>Uma nova forma de cuidar do seu carro. <Link href="/marcacoes/historico">As minhas marcações</Link> · <Link href="/notificacoes">Notificações</Link> · <Link href="/ao-redor">À volta do Lava Já</Link></span>
+          <span>Uma nova forma de cuidar do seu carro. <Link href="/marcacoes/historico">As minhas marcações</Link> · <Link href="/notificacoes">Notificações</Link> · <Link href="/servicos-locais">Serviços locais</Link></span>
         </footer>
       </div>
 

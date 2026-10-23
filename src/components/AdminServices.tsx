@@ -9,7 +9,6 @@ import AdminOverview from "@/components/AdminOverview";
 import AdminLocalPlaces from "@/components/AdminLocalPlaces";
 import AdminPromotionCampaigns from "@/components/AdminPromotionCampaigns";
 import AdminCustomerAccounts from "@/components/AdminCustomerAccounts";
-import AdminMarketplaceDemo from "@/components/AdminMarketplaceDemo";
 
 type Service = {
   id: string;
@@ -224,8 +223,6 @@ export default function AdminServices() {
           <AdminLocalPlaces token={token} onUnauthorized={logout} />
 
           <AdminPromotionCampaigns token={token} onUnauthorized={logout} />
-
-          <AdminMarketplaceDemo />
 
           <AdminCustomerAccounts token={token} onUnauthorized={logout} />
 

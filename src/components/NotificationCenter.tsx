@@ -5,7 +5,7 @@ import Link from "next/link";
 
 type Notification = {
   id: string;
-  type: "BOOKING" | "REMINDER" | "PROMOTION" | "MARKETPLACE";
+  type: "BOOKING" | "REMINDER" | "PROMOTION";
   title: string;
   message: string;
   actionUrl: string | null;
@@ -102,7 +102,7 @@ export default function NotificationCenter({ initialCode = "" }: { initialCode?:
       {notice && <p className="feedback success" role="status">{notice}</p>}
       {items.length ? <div className="notification-list">{items.map((item) => <article className={`notification-card${item.readAt ? " is-read" : " is-unread"}`} key={item.id}>
         <span className="notification-dot" aria-hidden="true" />
-        <div className="notification-copy"><div className="notification-card-heading"><h3>{item.title}</h3><time dateTime={item.availableAt}>{new Intl.DateTimeFormat("pt-MZ", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Maputo" }).format(new Date(item.availableAt))}</time></div><p>{item.message}</p>{item.actionUrl ? <Link href={item.actionUrl}>{item.type === "PROMOTION" ? "Ver promoção →" : item.type === "MARKETPLACE" ? "Ver oferta →" : item.type === "REMINDER" || item.title.toLowerCase().includes("conclu") ? "Agendar próxima lavagem →" : "Abrir →"}</Link> : item.booking && <Link href={{ pathname: "/fila", query: { code: item.booking.publicCode } }}>Acompanhar marcação →</Link>}</div>
+        <div className="notification-copy"><div className="notification-card-heading"><h3>{item.title}</h3><time dateTime={item.availableAt}>{new Intl.DateTimeFormat("pt-MZ", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Maputo" }).format(new Date(item.availableAt))}</time></div><p>{item.message}</p>{item.actionUrl ? <Link href={item.actionUrl}>{item.type === "PROMOTION" ? "Ver promoção →" : item.type === "REMINDER" || item.title.toLowerCase().includes("conclu") ? "Agendar próxima lavagem →" : "Abrir →"}</Link> : item.booking && <Link href={{ pathname: "/fila", query: { code: item.booking.publicCode } }}>Acompanhar marcação →</Link>}</div>
       </article>)}</div> : <p className="catalog-state">Ainda não há notificações para esta marcação.</p>}
       <button className="secondary-button" type="button" onClick={() => { setIdentity(null); setItems([]); setError(""); setNotice(""); }}>Consultar outra marcação</button>
     </section>}

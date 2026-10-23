@@ -104,15 +104,23 @@ async function main() {
   }
 
   const demoPlaces = [
-    { name: "Mercearia do Bairro (exemplo)", category: "SHOPS" as const, description: "Exemplo de uma loja de conveniência para visitar enquanto aguarda.", estimatedMinutes: 8 },
-    { name: "Loja de produtos locais (exemplo)", category: "SHOPS" as const, description: "Sugestão ilustrativa de comércio local na zona.", estimatedMinutes: 12 },
-    { name: "Café da Matola (exemplo)", category: "FOOD" as const, description: "Exemplo de um café para fazer uma pausa durante a visita.", estimatedMinutes: 6 },
-    { name: "Restaurante local (exemplo)", category: "FOOD" as const, description: "Sugestão ilustrativa para uma refeição nas proximidades.", estimatedMinutes: 15 },
-    { name: "Espaço de lazer familiar (exemplo)", category: "ENTERTAINMENT" as const, description: "Exemplo de entretenimento para famílias; confirme opções e horários antes de se deslocar.", estimatedMinutes: 15 },
-    { name: "Actividade cultural local (exemplo)", category: "ENTERTAINMENT" as const, description: "Sugestão fictícia que demonstra como actividades culturais poderiam ser descobertas.", estimatedMinutes: 20 },
+    { name: "Barbearia da Matola (exemplo)", previousName: "Mercearia do Bairro (exemplo)", category: "SHOPS" as const, description: "Serviço de barbearia ilustrativo para aproveitar o tempo enquanto o carro está em atendimento.", estimatedMinutes: 25 },
+    { name: "Salão de beleza da Matola (exemplo)", previousName: "Loja de produtos locais (exemplo)", category: "SHOPS" as const, description: "Sugestão ilustrativa de salão de beleza na zona do Lava Já.", estimatedMinutes: 40 },
+    { name: "Café da Matola (exemplo)", category: "FOOD" as const, description: "Sugestão ilustrativa de café para uma pausa durante a visita.", estimatedMinutes: 15 },
+    { name: "Restaurante da Matola (exemplo)", previousName: "Restaurante local (exemplo)", category: "FOOD" as const, description: "Sugestão ilustrativa de restaurante para uma refeição durante o atendimento.", estimatedMinutes: 45 },
+    { name: "Espaço de lazer familiar (exemplo)", category: "ENTERTAINMENT" as const, description: "Sugestão ilustrativa de entretenimento para famílias; confirme opções e horários antes de se deslocar.", estimatedMinutes: 60 },
+    { name: "Actividade cultural local (exemplo)", category: "ENTERTAINMENT" as const, description: "Sugestão ilustrativa de actividade cultural na zona.", estimatedMinutes: 60 },
   ];
   for (const place of demoPlaces) {
-    await prisma.localPlace.upsert({ where: { name: place.name }, update: {}, create: { ...place, isDemo: true } });
+    const { previousName, ...placeData } = place;
+    const existing = await prisma.localPlace.findUnique({ where: { name: place.name } })
+      ?? (previousName ? await prisma.localPlace.findUnique({ where: { name: previousName } }) : null);
+    const data = { ...placeData, externalUrl: null, isDemo: true };
+    if (existing) {
+      await prisma.localPlace.update({ where: { id: existing.id }, data });
+    } else {
+      await prisma.localPlace.create({ data });
+    }
   }
 
   let wallet = await prisma.demoWallet.findUnique({ where: { customerId: customer.id } });
@@ -128,7 +136,7 @@ async function main() {
   }
 
   console.info("Dados demo criados. Cliente: 84 123 4567; marcações: LAVA1001, LAVA1002, LAVA1003.");
-  console.info("Guia local: 6 sugestões fictícias entre lojas, alimentação e entretenimento; nenhuma é afiliada.");
+  console.info("Serviços locais: 6 sugestões demonstrativas de barbearia, beleza, alimentação e entretenimento; nenhuma é afiliada.");
   console.info("Carteira demo: saldos carregado e promocional separados; saldos existentes preservados pelo seed.");
 }
 

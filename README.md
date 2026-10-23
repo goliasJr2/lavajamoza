@@ -53,9 +53,9 @@ O service worker não é registado pelo servidor de desenvolvimento. Em produç�
 - Carteira de demonstração num seed limpo: 1.000 MT carregados, 500 MT promocionais e 500 pontos fictícios, tudo sem valor monetário real. Em bases já existentes, a migração preserva o total antigo no saldo carregado, porque movimentos anteriores não guardavam a origem.
 - Administração local: `admin@lavaja.local` / `change-this-password-123` (mude a palavra-passe antes de expor a aplicação fora da máquina local).
 
-O seed preserva estados de marcações e movimentos já existentes quando é executado novamente. Datas de marcações de exemplo são renovadas para permanecerem úteis numa nova demonstração.
+O seed inclui seis sugestões demonstrativas de Serviços locais, incluindo barbearia, salão de beleza, alimentação e entretenimento. Actualiza esses registos sem duplicá-los e preserva alterações de publicação feitas pela equipa. Também preserva estados de marcações e movimentos existentes quando é executado novamente. Datas de marcações de exemplo são renovadas para permanecerem úteis numa nova demonstração.
 
-As demonstrações comerciais permanecem explicitamente fictícias: o painel separa estimativas do catálogo de pagamentos simulados e nenhuma métrica representa receita real. O guia `/ao-redor` também contém apenas locais ilustrativos, não verificados e sem afiliação. Notificações de pedidos ficam na caixa `/notificacoes` e não são enviadas por SMS, email ou push. Transições de marcação feitas pela equipa autenticada ficam registadas e visíveis na gestão do pedido.
+As demonstrações comerciais permanecem explicitamente fictícias: o painel separa estimativas do catálogo de pagamentos simulados e nenhuma métrica representa receita real. A página `/servicos-locais` contém sugestões ilustrativas, não verificadas e sem afiliação. Notificações de pedidos ficam na caixa `/notificacoes` e não são enviadas por SMS, email ou push. Transições de marcação feitas pela equipa autenticada ficam registadas e visíveis na gestão do pedido.
 
 ## Documentação do projecto
 

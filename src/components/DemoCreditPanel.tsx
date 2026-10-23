@@ -5,7 +5,7 @@ import Link from "next/link";
 
 type WalletMode = "credit" | "loyalty";
 type Movement = { id: string; type: "LOAD" | "PROMO_CREDIT" | "PAYMENT" | "POINTS_EARNED" | "POINTS_REDEEMED" | "MOZA_BONUS_CREDIT"; amount: number; loadedAmountMzn: number; promoAmountMzn: number; mozaCreditAmountMzn: number; description: string; createdAt: string };
-type RewardType = "PARTNER_FOOD" | "WASH_DISCOUNT" | "AUTO_PARTNER";
+type RewardType = "WASH_DISCOUNT";
 type Reward = { id: string; rewardType: RewardType; pointsSpent: number; promoCreditGrantedMzn: number; code: string; createdAt: string };
 type Wallet = { demo: true; booking: { code: string; status: string; service: string; priceMzn: number }; balanceMzn: number; loadedBalanceMzn: number; promoBalanceMzn: number; mozaCreditBalanceMzn: number; pointsBalance: number; movements: Movement[]; rewards: Reward[] };
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -76,16 +76,14 @@ export default function DemoCreditPanel({ mode = "credit" }: { mode?: WalletMode
       if (!response.ok) throw new Error(await errorMessage(response));
       setWallet(await response.json() as Wallet);
       retryKey.current = null;
-      setNotice(path === "loads" ? "Carregamento demonstrativo registado na carteira." : path === "payments" ? "Pagamento registado. Os pontos são atribuídos após a conclusão da lavagem." : "Recompensa resgatada. Consulte o voucher ou crédito promocional na carteira.");
+      setNotice(path === "loads" ? "Carregamento demonstrativo registado na carteira." : path === "payments" ? "Pagamento registado. Os pontos são atribuídos após a conclusão da lavagem." : "Crédito promocional resgatado e registado na carteira.");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha de ligação. Pode tentar novamente."); }
     finally { setLoading(false); }
   }
 
   const points = mode === "loyalty";
   const rewardOptions: Array<{ type: RewardType; points: number; title: string; description: string }> = [
-    { type: "PARTNER_FOOD", points: 100, title: "Bebida ou refeicao", description: "Voucher demo de parceiro local" },
     { type: "WASH_DISCOUNT", points: 250, title: "Desconto parcial numa lavagem", description: "Receba 100 MT de credito promocional" },
-    { type: "AUTO_PARTNER", points: 400, title: "Servico automovel", description: "Voucher demo de parceiro automovel" },
   ];
   return <>
     <div className="demo-notice prominent-notice"><strong>Demonstração sem valor monetário.</strong> Use o código e telefone de uma marcação. Nenhum valor é movimentado em bancos, M-Pesa ou e-Mola.</div>

@@ -113,7 +113,7 @@ export default function AdminPromotionCampaigns({ token, onUnauthorized }: { tok
         <label>Título<input name="title" minLength={3} maxLength={100} required /></label>
         <label>Data e hora de envio (Maputo)<input name="scheduledAt" type="datetime-local" min={minimumTime} required /></label>
         <label className="wide-field">Mensagem<textarea name="message" minLength={5} maxLength={500} rows={2} required /></label>
-        <label className="wide-field">Ligação interna opcional<input name="actionUrl" maxLength={300} pattern="/(?!/)[A-Za-z0-9/_?&=%#.-]*" placeholder="/marcacoes ou /marketplace/oferta" /></label>
+        <label className="wide-field">Ligação interna opcional<input name="actionUrl" maxLength={300} pattern="/(?!/)[A-Za-z0-9/_?&=%#.-]*" placeholder="/marcacoes ou /servicos-locais" /></label>
       </div>
       <button className="primary-button" type="submit" disabled={busy || !minimumTime}>Agendar campanha</button>
     </form>

@@ -35,15 +35,15 @@ export class CustomerAuthService {
   async registerBusiness(input: BusinessRegisterDto) {
     const phone = normalizePhone(input.phone);
     const existing = await this.prisma.customer.findUnique({ where: { phone } });
-    if (existing?.passwordHash) throw new ConflictException("JÃ¡ existe uma conta com este telefone. Entre na conta existente.");
-    if (existing?.accountType === "BUSINESS") throw new ConflictException("JÃ¡ existe um pedido empresarial associado a este telefone.");
+    if (existing?.passwordHash) throw new ConflictException("Já existe uma conta com este telefone. Entre na conta existente.");
+    if (existing?.accountType === "BUSINESS") throw new ConflictException("Já existe um pedido empresarial associado a este telefone.");
     const passwordHash = await hash(input.password, 12);
     try {
       if (existing) await this.prisma.customer.update({ where: { id: existing.id }, data: { name: input.contactName.trim(), passwordHash, accountType: "BUSINESS", accountStatus: "PENDING", businessName: input.businessName.trim(), nuit: input.nuit, businessReviewedAt: null, businessReviewedById: null } });
       else await this.prisma.customer.create({ data: { name: input.contactName.trim(), phone, passwordHash, accountType: "BUSINESS", accountStatus: "PENDING", businessName: input.businessName.trim(), nuit: input.nuit } });
-      return { status: "PENDING", message: "Pedido enviado. PoderÃ¡ entrar quando o administrador aprovar a conta." };
+      return { status: "PENDING", message: "Pedido enviado. Poderá entrar quando o administrador aprovar a conta." };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") throw new ConflictException("Este NUIT jÃ¡ estÃ¡ associado a uma conta.");
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") throw new ConflictException("Este NUIT já está associado a uma conta.");
       throw error;
     }
   }
@@ -54,7 +54,7 @@ export class CustomerAuthService {
 
   async reviewBusiness(id: string, decision: "APPROVE" | "REJECT", staffId: string) {
     const account = await this.prisma.customer.findUnique({ where: { id }, select: { id: true, accountType: true } });
-    if (!account || account.accountType !== "BUSINESS") throw new NotFoundException("Conta empresarial nÃ£o encontrada.");
+    if (!account || account.accountType !== "BUSINESS") throw new NotFoundException("Conta empresarial não encontrada.");
     return this.prisma.customer.update({ where: { id }, data: { accountStatus: decision === "APPROVE" ? "ACTIVE" : "REJECTED", businessReviewedAt: new Date(), businessReviewedById: staffId }, select: { id: true, name: true, phone: true, businessName: true, nuit: true, accountStatus: true, businessReviewedAt: true } });
   }
 
@@ -68,29 +68,29 @@ export class CustomerAuthService {
     const plate = input.plate.replace(/[\s-]/g, "").toUpperCase();
     const existing = await this.prisma.vehicle.findUnique({ where: { plate }, select: { id: true, customerId: true, isActive: true } });
     if (existing) {
-      if (existing.customerId !== customerId) throw new ConflictException("Esta matrÃ­cula jÃ¡ estÃ¡ associada a outra conta.");
+      if (existing.customerId !== customerId) throw new ConflictException("Esta matrícula já está associada a outra conta.");
       if (!existing.isActive) return this.prisma.vehicle.update({ where: { id: existing.id }, data: { isActive: true }, select: { id: true, plate: true, createdAt: true } });
-      throw new ConflictException("Esta viatura jÃ¡ estÃ¡ na frota.");
+      throw new ConflictException("Esta viatura já está na frota.");
     }
     try { return await this.prisma.vehicle.create({ data: { customerId, plate }, select: { id: true, plate: true, createdAt: true } }); }
-    catch (error) { if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") throw new ConflictException("Esta matrÃ­cula jÃ¡ estÃ¡ associada a uma conta."); throw error; }
+    catch (error) { if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") throw new ConflictException("Esta matrícula já está associada a uma conta."); throw error; }
   }
 
   async deactivateFleetVehicle(customerId: string, vehicleId: string) {
     await this.assertActiveBusiness(customerId);
     const vehicle = await this.prisma.vehicle.findFirst({ where: { id: vehicleId, customerId, isActive: true }, select: { id: true } });
-    if (!vehicle) throw new NotFoundException("Viatura nÃ£o encontrada.");
+    if (!vehicle) throw new NotFoundException("Viatura não encontrada.");
     return this.prisma.vehicle.update({ where: { id: vehicleId }, data: { isActive: false }, select: { id: true, plate: true, isActive: true } });
   }
 
   async createRating(input: CreateBookingRatingDto) {
     const phone = normalizePhone(input.phone);
     const booking = await this.prisma.booking.findFirst({ where: { publicCode: input.code, customer: { phone } }, select: { id: true, customerId: true, status: true, rating: { select: { id: true } } } });
-    if (!booking) throw new NotFoundException("NÃ£o encontrÃ¡mos uma marcaÃ§Ã£o com esses dados.");
-    if (booking.status !== "COMPLETED") throw new ConflictException("SÃ³ pode avaliar uma lavagem concluÃ­da.");
-    if (booking.rating) throw new ConflictException("Esta lavagem jÃ¡ foi avaliada.");
+    if (!booking) throw new NotFoundException("Não encontrámos uma marcação com esses dados.");
+    if (booking.status !== "COMPLETED") throw new ConflictException("Só pode avaliar uma lavagem concluída.");
+    if (booking.rating) throw new ConflictException("Esta lavagem já foi avaliada.");
     try { return await this.prisma.bookingRating.create({ data: { bookingId: booking.id, customerId: booking.customerId, score: input.score, comment: input.comment?.trim() || null }, select: { id: true, score: true, comment: true, createdAt: true } }); }
-    catch (error) { if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") throw new ConflictException("Esta lavagem jÃ¡ foi avaliada."); throw error; }
+    catch (error) { if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") throw new ConflictException("Esta lavagem já foi avaliada."); throw error; }
   }
 
   async ratingsSummary() {
@@ -105,8 +105,8 @@ export class CustomerAuthService {
 
   private async assertActiveBusiness(customerId: string) {
     const customer = await this.prisma.customer.findUnique({ where: { id: customerId }, select: { accountType: true, accountStatus: true } });
-    if (!customer || customer.accountType !== "BUSINESS") throw new ForbiddenException("Esta funcionalidade estÃ¡ disponÃ­vel para contas empresariais.");
-    if (customer.accountStatus !== "ACTIVE") throw new ForbiddenException("A conta empresarial ainda nÃ£o estÃ¡ activa.");
+    if (!customer || customer.accountType !== "BUSINESS") throw new ForbiddenException("Esta funcionalidade está disponível para contas empresariais.");
+    if (customer.accountStatus !== "ACTIVE") throw new ForbiddenException("A conta empresarial ainda não está activa.");
   }
 
   async profile(id: string) {

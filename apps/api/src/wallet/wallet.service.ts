@@ -9,9 +9,7 @@ const normalizePhone = (value: string) => {
   return digits.startsWith("258") ? digits.slice(3) : digits;
 };
 const REWARDS = {
-  PARTNER_FOOD: { points: 100, creditMzn: 0, label: "Voucher demo para bebida/refeicao de parceiro" },
   WASH_DISCOUNT: { points: 250, creditMzn: 100, label: "Credito promocional de 100 MT para desconto parcial numa lavagem" },
-  AUTO_PARTNER: { points: 400, creditMzn: 0, label: "Voucher demo para beneficio num servico automovel" },
 } as const;
 const METHOD_LABEL = { MOZA_DEMO: "Moza Banco (demonstração)", MPESA_DEMO: "M-Pesa (demonstração)", EMOLA_DEMO: "e-Mola (demonstração)", PROMO_DEMO: "Crédito promocional (demonstração)" };
 

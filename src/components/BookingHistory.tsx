@@ -81,7 +81,7 @@ export default function BookingHistory() {
       if (!response.ok) throw new Error(await readError(response));
       const rating = await response.json() as { score: number; comment: string | null };
       setBookings((current) => current?.map((item) => item.code === booking.code ? { ...item, rating } : item) ?? null);
-    } catch (cause) { setRatingError(cause instanceof Error ? cause.message : "NÃ£o foi possÃ­vel enviar a avaliaÃ§Ã£o."); }
+    } catch (cause) { setRatingError(cause instanceof Error ? cause.message : "Não foi possível enviar a avaliação."); }
     finally { setRatingBusy(""); }
   }
 

@@ -14,11 +14,11 @@ type Place = {
 
 const filters = [
   { value: "ALL", label: "Tudo" },
-  { value: "SHOPS", label: "Lojas" },
+  { value: "SHOPS", label: "Lojas e serviços" },
   { value: "FOOD", label: "Cafés e refeições" },
   { value: "ENTERTAINMENT", label: "Entretenimento" },
 ] as const;
-const categoryNames: Record<Place["category"], string> = { SHOPS: "Loja · exemplo", FOOD: "Café e refeições · exemplo", ENTERTAINMENT: "Entretenimento · exemplo" };
+const categoryNames: Record<Place["category"], string> = { SHOPS: "Serviço local · exemplo", FOOD: "Alimentação · exemplo", ENTERTAINMENT: "Entretenimento · exemplo" };
 const categoryIcons: Record<Place["category"], string> = { SHOPS: "⌂", FOOD: "☕", ENTERTAINMENT: "◇" };
 
 export default function LocalGuide({ places }: { places: Place[] }) {

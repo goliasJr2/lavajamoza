@@ -110,7 +110,7 @@ export default function AdminLocalPlaces({ token, onUnauthorized }: { token: str
   }
 
   return <section className="admin-local-places" id="local-places">
-    <div className="admin-local-places-heading"><div><p className="eyebrow">Experiência do cliente</p><h2>À volta do Lava Já</h2><p>Gira sugestões de lojas, refeições e actividades para o guia local.</p></div><button className="secondary-button" type="button" onClick={() => void load()}>Actualizar lista</button></div>
+    <div className="admin-local-places-heading"><div><p className="eyebrow">Experiência do cliente</p><h2>Serviços locais</h2><p>Gira sugestões de lojas, refeições e actividades apresentadas ao cliente.</p></div><button className="secondary-button" type="button" onClick={() => void load()}>Actualizar lista</button></div>
     {notice && <p className="feedback success" role="status">{notice}</p>}
     {error && <p className="feedback error" role="alert">{error}</p>}
     <form className="admin-form local-place-create" onSubmit={create}>

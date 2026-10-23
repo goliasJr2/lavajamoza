@@ -19,7 +19,7 @@ export class CustomerWalletOperationDto {
   @IsString() @Matches(/^[A-Z0-9]{8}$/) code!: string;
   @IsString() @Matches(/^[A-Za-z0-9_-]{12,80}$/) idempotencyKey!: string;
   @IsOptional() @IsString() @Matches(/^(MOZA_DEMO|MPESA_DEMO|EMOLA_DEMO|PROMO_DEMO)$/) method?: string;
-  @IsOptional() @IsString() @Matches(/^(PARTNER_FOOD|WASH_DISCOUNT|AUTO_PARTNER)$/) reward?: "PARTNER_FOOD" | "WASH_DISCOUNT" | "AUTO_PARTNER";
+  @IsOptional() @IsString() @Matches(/^WASH_DISCOUNT$/) reward?: "WASH_DISCOUNT";
 }
 
 export class BusinessRegisterDto {

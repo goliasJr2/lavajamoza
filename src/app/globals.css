@@ -826,8 +826,8 @@ a {
 .sidebar-admin-link:hover { background: #f2f9fd; }
 .sidebar-admin-link span { font-size: 15px; }
 
-.customer-workspace { min-width: 0; }
-.customer-page-content { min-height: calc(100vh - 80px); padding-top: 1px; }
+.customer-workspace { min-width: 0; padding-bottom: 76px; }
+.customer-page-content { min-height: 100vh; padding-top: 1px; }
 .customer-mobile-header,
 .mobile-bottom-nav { display: none; }
 .customer-location { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
@@ -914,13 +914,13 @@ a {
 
 .content-page {
   min-height: calc(100vh - 195px);
-  padding-top: 57px;
-  padding-bottom: 70px;
+  padding-top: 36px;
+  padding-bottom: 48px;
 }
 
 .page-heading {
   max-width: 700px;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 .page-heading h1 {
@@ -932,7 +932,7 @@ a {
 
 .page-heading > p:last-child {
   max-width: 590px;
-  margin: 15px 0 0;
+  margin: 12px 0 0;
   color: var(--muted);
   font-size: 15px;
   line-height: 1.7;
@@ -1468,10 +1468,10 @@ select:focus-visible {
 
   .customer-app { display: block; min-height: 100vh; }
   .customer-sidebar { display: none; }
-  .customer-workspace { min-height: 100vh; padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .customer-workspace { min-height: 100vh; padding-top: calc(56px + env(safe-area-inset-top)); padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
   .customer-page-content { min-height: auto; padding-top: 1px; }
   .customer-page-content > .shell, .customer-workspace > .footer.shell { width: min(100% - 32px, 700px); }
-  .customer-mobile-header { display: flex; min-height: 56px; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid var(--border); background: #fff; }
+  .customer-mobile-header { position: fixed; z-index: 30; top: 0; right: 0; left: 0; display: flex; min-height: calc(56px + env(safe-area-inset-top)); align-items: center; justify-content: space-between; padding: env(safe-area-inset-top) 16px 0; border-bottom: 1px solid var(--border); background: rgb(255 255 255 / 97%); box-shadow: 0 3px 14px rgb(16 42 67 / 5%); }
   .customer-mobile-header .wordmark { gap: 8px; }
   .customer-mobile-header .brand-logo { width: 126px; }
   .mobile-header-actions { display: flex; align-items: center; gap: 10px; }
@@ -1559,7 +1559,7 @@ select:focus-visible {
   .info-grid,
   .credit-actions { grid-template-columns: 1fr; gap: 12px; }
   .feature-grid { padding-bottom: 48px; }
-  .content-page { min-height: calc(100vh - 178px); padding-top: 38px; padding-bottom: 48px; }
+  .content-page { min-height: calc(100vh - 178px); padding-top: 26px; padding-bottom: 40px; }
   .booking-layout { grid-template-columns: 1fr; }
   .booking-sidecard { position: static; }
   .slot-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1779,31 +1779,6 @@ select:focus-visible {
 .reward-redemptions article { align-items: flex-start; flex-direction: column; gap: .3rem; }
 .reward-redemptions span, .reward-redemptions small { color: var(--muted, #65716a); }
 @media (max-width: 640px) { .reward-option { align-items: flex-start; flex-direction: column; } }
-.marketplace-customer-form { max-width: 760px; margin: 22px auto; }
-.marketplace-customer-form > p { color: var(--muted); font-size: 13px; }
-.marketplace-offer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 24px 0 42px; }
-.marketplace-offer-card { display: grid; align-content: start; gap: 12px; padding: 21px; border: 1px solid var(--border); border-radius: 18px; background: white; box-shadow: 0 8px 25px rgb(16 42 67 / 3%); }
-.marketplace-offer-card > .demo-badge { width: fit-content; }
-.marketplace-offer-card > small { color: var(--muted); }
-.marketplace-offer-card h2 { margin: 0; font-size: 18px; }
-.marketplace-offer-card > p { min-height: 42px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
-.marketplace-offer-icon { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 15px; background: #e8f8ff; font-size: 25px; }
-.marketplace-offer-footer { display: grid; gap: 12px; margin-top: 5px; padding-top: 14px; border-top: 1px solid var(--border); }
-.marketplace-offer-footer strong { color: var(--brand-deep); }
-.marketplace-request-section { margin: 20px 0 40px; }
-.marketplace-request-list, .marketplace-admin-list { display: grid; gap: 10px; }
-.marketplace-request-list article, .marketplace-admin-list > article { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: white; }
-.marketplace-request-list article { grid-template-columns: 1fr auto; align-items: center; }
-.marketplace-request-list article > div, .marketplace-admin-request > div { display: grid; gap: 5px; }
-.marketplace-request-list small, .marketplace-admin-request small, .marketplace-admin-request span { color: var(--muted); font-size: 12px; }
-.marketplace-request-section > small { display: block; margin-top: 10px; color: var(--muted); }
-.admin-marketplace-demo { margin: 32px 0; padding-top: 24px; border-top: 1px solid var(--border); }
-.marketplace-admin-request { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
-.marketplace-status-approved { background: #e8f6ed; color: #23653b; }
-.marketplace-status-rejected { background: #fff0ed; color: #9c3828; }
-.marketplace-status-pending { background: #fff7df; color: #795500; }
-@media (max-width: 760px) { .marketplace-offer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .marketplace-offer-grid { grid-template-columns: 1fr; } .marketplace-request-list article { grid-template-columns: 1fr; align-items: start; } .marketplace-admin-request { align-items: flex-start; flex-direction: column; } }
 
 .sidebar-extra-details { margin-top: 9px; border-top: 1px solid var(--border); }
 .customer-sidebar { overflow-y: auto; }
@@ -1854,8 +1829,8 @@ img, svg, video, canvas { max-width: 100%; }
 @media (max-width: 560px) {
   html { -webkit-text-size-adjust: 100%; }
   .shell { width: min(100% - 28px, 520px); }
-  .content-page { padding-top: 32px; padding-bottom: 34px; }
-  .page-heading { margin-bottom: 22px; }
+  .content-page { padding-top: 20px; padding-bottom: 34px; }
+  .page-heading { margin-bottom: 18px; }
   .page-heading h1 { font-size: clamp(30px, 9vw, 40px); line-height: 1.1; letter-spacing: -0.045em; }
   .page-heading > p:last-child { margin-top: 11px; font-size: 14px; line-height: 1.6; }
   .demo-form, .queue-demo-card, .credit-panel, .transaction-list, .loyalty-progress, .future-card { padding: 17px; }

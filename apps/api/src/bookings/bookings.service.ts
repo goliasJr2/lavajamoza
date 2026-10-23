@@ -103,7 +103,7 @@ export class BookingsService {
           create: { name, phone },
         });
         if (customer.accountType === "BUSINESS" && customer.accountStatus !== "ACTIVE") {
-          throw new BadRequestException("A conta empresarial ainda nÃ£o foi aprovada e nÃ£o pode criar marcaÃ§Ãµes.");
+          throw new BadRequestException("A conta empresarial ainda não foi aprovada e não pode criar marcações.");
         }
 
         let vehicle = await tx.vehicle.findUnique({ where: { plate } });
@@ -209,7 +209,7 @@ export class BookingsService {
       where: { publicCode: code, customer: { is: { phone } } },
       select: { customerId: true },
     });
-    if (!current) throw new NotFoundException("NÃ£o encontrÃ¡mos uma marcaÃ§Ã£o com esses dados.");
+    if (!current) throw new NotFoundException("Não encontrámos uma marcação com esses dados.");
 
     const bookings = await this.prisma.booking.findMany({
       where: { customerId: current.customerId },
