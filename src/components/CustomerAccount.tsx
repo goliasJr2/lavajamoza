@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 const api = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api`;
-const mozambicanPhonePattern = "(\\+?258[\\s-]?)?8[2-7]([\\s-]?[0-9]){7}";
+const mozambicanPhonePattern = "((?:\\+|00)?258[\\s-]?)?8[2-7](?:[\\s-]?[0-9]){7}";
 
 function getApiError(message: unknown, fallback: string) {
   if (typeof message === "string" && message.trim()) return message;

@@ -1,13 +1,25 @@
 import { IsIn, IsInt, IsOptional, IsString, Matches, MaxLength, MinLength, Min, Max } from "class-validator";
+import { Transform } from "class-transformer";
+
+function normalizeMozambicanPhone(value: unknown) {
+  if (typeof value !== "string") return value;
+  let phone = value.replace(/[\s()-]/g, "");
+  if (phone.startsWith("+")) phone = phone.slice(1);
+  if (phone.startsWith("00")) phone = phone.slice(2);
+  if (phone.startsWith("258")) phone = phone.slice(3);
+  return phone;
+}
 
 export class CustomerRegisterDto {
   @IsString() @Matches(/^[A-Z0-9]{8}$/) code!: string;
-  @IsString() @MaxLength(20) @Matches(/^(?:\+?258[\s-]?)?8[2-7](?:[\s-]?\d){7}$/) phone!: string;
+  @Transform(({ value }) => normalizeMozambicanPhone(value))
+  @IsString() @MaxLength(20) @Matches(/^8[2-7]\d{7}$/, { message: "Use um telefone moçambicano com 9 dígitos, por exemplo 841234567 ou +258 84 123 4567." }) phone!: string;
   @IsString() @MinLength(12) @MaxLength(100) password!: string;
 }
 
 export class CustomerLoginDto {
-  @IsString() @MaxLength(20) @Matches(/^(?:\+?258[\s-]?)?8[2-7](?:[\s-]?\d){7}$/) phone!: string;
+  @Transform(({ value }) => normalizeMozambicanPhone(value))
+  @IsString() @MaxLength(20) @Matches(/^8[2-7]\d{7}$/, { message: "Use um telefone moçambicano com 9 dígitos, por exemplo 841234567 ou +258 84 123 4567." }) phone!: string;
   @IsString() @MinLength(12) @MaxLength(100) password!: string;
 }
 
@@ -26,7 +38,8 @@ export class BusinessRegisterDto {
   @IsString() @MinLength(2) @MaxLength(120) businessName!: string;
   @IsString() @Matches(/^\d{9}$/) nuit!: string;
   @IsString() @MinLength(2) @MaxLength(100) contactName!: string;
-  @IsString() @MaxLength(20) @Matches(/^(?:\+?258[\s-]?)?8[2-7](?:[\s-]?\d){7}$/) phone!: string;
+  @Transform(({ value }) => normalizeMozambicanPhone(value))
+  @IsString() @MaxLength(20) @Matches(/^8[2-7]\d{7}$/, { message: "Use um telefone moçambicano com 9 dígitos, por exemplo 841234567 ou +258 84 123 4567." }) phone!: string;
   @IsString() @MinLength(12) @MaxLength(100) password!: string;
 }
 
