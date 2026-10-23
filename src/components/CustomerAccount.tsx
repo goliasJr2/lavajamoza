@@ -43,7 +43,7 @@ export default function CustomerAccount() {
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha de ligação à API."); } finally { setBusy(false); }
   }
   function logout() { window.sessionStorage.removeItem("lavaja-customer-token"); setToken(""); setProfile(null); }
-  return <main className="shell"><header className="page-heading"><p className="eyebrow">A sua conta Lava Já</p><h1>Perfil do cliente</h1><p>Consulte as suas marcações, cartão e saldo de fidelização no mesmo perfil.</p></header>
+  return <main className="shell content-page"><header className="page-heading"><p className="eyebrow">A sua conta Lava Já</p><h1>Perfil do cliente</h1><p>Consulte as suas marcações, cartão e saldo de fidelização no mesmo perfil.</p></header>
     {!token || !profile ? <section className="demo-form customer-account-form">
       {screen === "login" ? <>
         <div className="account-form-heading"><p className="eyebrow">Acesso à sua conta</p><h2>Entrar</h2><p>Introduza os dados associados ao seu perfil Lava Já.</p></div>

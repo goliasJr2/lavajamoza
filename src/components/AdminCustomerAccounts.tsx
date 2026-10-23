@@ -39,7 +39,7 @@ export default function AdminCustomerAccounts({ token, onUnauthorized }: { token
     finally { setBusyId(""); }
   }
 
-  return <section className="admin-panel customer-admin-panel">
+  return <section className="admin-panel customer-admin-panel" id="customer-accounts">
     <div className="section-heading section-heading-left"><div><p className="eyebrow">Clientes empresariais</p><h2>Contas e avaliações</h2><p>Valide os pedidos empresariais e acompanhe o feedback das lavagens concluídas.</p></div></div>
     {error && <p className="feedback error" role="alert">{error}</p>}
     <div className="admin-rating-summary"><article><span>Média das avaliações</span><strong>{summary?.averageScore.toFixed(1) ?? "—"} / 5</strong></article><article><span>Avaliações recebidas</span><strong>{summary?.ratingCount ?? "—"}</strong></article><article><span>Lavagens concluídas avaliadas</span><strong>{summary ? `${summary.responseRate}%` : "—"}</strong></article></div>

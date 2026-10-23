@@ -25,7 +25,7 @@ export default function AdminStatistics({ token, onUnauthorized }: { token: stri
       .finally(() => { if (current) setLoading(false); });
     return () => { current = false; };
   }, [days, token, onUnauthorized]);
-  return <section className="admin-statistics" aria-labelledby="statistics-heading">
+  return <section className="admin-statistics" id="statistics" aria-labelledby="statistics-heading">
     <div className="admin-overview-heading"><div><p className="eyebrow">Operação · análise</p><h2 id="statistics-heading">Estatísticas de marcações</h2><p>Dados calculados a partir das marcações e pagamentos persistidos.</p></div><label>Período<select value={days} onChange={(event) => setDays(Number(event.target.value))}><option value={7}>7 dias</option><option value={30}>30 dias</option><option value={90}>90 dias</option></select></label></div>
     {loading && <p className="catalog-state" role="status">A carregar…</p>}{error && <p className="feedback error" role="alert">{error}</p>}
     {!loading && report && <>

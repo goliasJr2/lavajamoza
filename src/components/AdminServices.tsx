@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import BookingManagement from "@/components/BookingManagement";
 import AdminStatistics from "@/components/AdminStatistics";
@@ -157,9 +158,8 @@ export default function AdminServices() {
   return (
     <main className="admin-shell">
       <header className="admin-topbar">
-        <Link className="wordmark" href="/">
-          <span className="wordmark-icon" aria-hidden="true">LJ</span>
-          <span>Lava Já <strong>Smart</strong></span>
+        <Link className="admin-brand" href="/" aria-label="Lava Já Smart, início">
+          <Image src="/brand/lava-ja-horizontal.svg" alt="Lava Já Smart" width={726} height={184} priority />
         </Link>
         <Link className="back-link" href="/">← Voltar ao catálogo</Link>
       </header>
@@ -208,6 +208,17 @@ export default function AdminServices() {
             </div>
             <button className="secondary-button" onClick={logout} type="button">Terminar sessão</button>
           </div>
+
+          <nav className="admin-section-nav" aria-label="Secções do painel">
+            <a href="#overview">Resumo</a>
+            <a href="#statistics">Estatísticas</a>
+            <a href="#payments">Pagamentos</a>
+            <a href="#booking-management">Marcações</a>
+            <a href="#local-places">Serviços locais</a>
+            <a href="#promotion-campaigns">Campanhas</a>
+            <a href="#customer-accounts">Clientes</a>
+            <a href="#services">Serviços</a>
+          </nav>
 
           {notice && <p className="feedback success" role="status">{notice}</p>}
           {error && <p className="feedback error" role="alert">{error}</p>}

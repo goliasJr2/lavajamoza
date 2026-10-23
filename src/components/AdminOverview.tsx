@@ -66,7 +66,7 @@ export default function AdminOverview({ token, onUnauthorized }: { token: string
 
   useEffect(() => { void load(); }, [load]);
 
-  return <section className="admin-overview" aria-labelledby="overview-heading">
+  return <section className="admin-overview" id="overview" aria-labelledby="overview-heading">
     <div className="admin-overview-heading"><div><p className="eyebrow">Operação · Matola</p><h2 id="overview-heading">Resumo operacional</h2><p>Indicadores de marcações. Valores são referências de catálogo, não receitas.</p></div><button className="secondary-button" type="button" onClick={() => void load()} disabled={loading}>{loading ? "A actualizar…" : "Actualizar"}</button></div>
     {error && <p className="feedback error" role="alert">{error} <button className="text-button" type="button" onClick={() => void load()}>Tentar novamente</button></p>}
     {loading && !summary ? <p className="catalog-state" role="status">A carregar indicadores…</p> : summary && <>
