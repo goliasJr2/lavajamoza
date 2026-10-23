@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CustomerShell from "@/components/CustomerShell";
+import SmoothScrollLink from "@/components/SmoothScrollLink";
 
 type Service = {
   id: string;
@@ -32,7 +33,7 @@ export default async function Home() {
             <h1>Mais tempo para si. Uma lavagem sem surpresas.</h1>
             <p className="hero-text">Consulte os serviços do Lava Já, organize a sua visita e acompanhe o atendimento num só lugar.</p>
             <div className="hero-actions">
-              <Link className="primary-link" href="#servicos">Ver serviços <span aria-hidden="true">↓</span></Link>
+              <SmoothScrollLink className="primary-link" href="#servicos">Ver serviços <span aria-hidden="true">↓</span></SmoothScrollLink>
               <Link className="hero-secondary-link" href="/marcacoes">Pedir pré-marcação</Link>
             </div>
           </div>
@@ -72,6 +73,8 @@ export default async function Home() {
           <Link className="feature-card" href="/credito"><span className="feature-icon">03</span><h3>Crédito Lava Já</h3><p>Explore um conceito de carteira e pagamentos simulados.</p><span className="feature-action">Explorar conceito →</span></Link>
           <Link className="feature-card" href="/ao-redor"><span className="feature-icon">04</span><h3>Descubra a zona</h3><p>Veja ideias de lojas, cafés e actividades perto do Lava Já.</p><span className="feature-action">Explorar sugestões →</span></Link>
           <Link className="feature-card" href="/notificacoes"><span className="feature-icon">05</span><h3>Notificações</h3><p>Consulte as actualizações guardadas para a sua marcação.</p><span className="feature-action">Ver actualizações →</span></Link>
+          <Link className="feature-card" href="/pagamento"><span className="feature-icon">06</span><h3>Pagamento Moza</h3><p>Explore a proposta de pagamento ligado a uma marcação.</p><span className="feature-action">Ver demonstração →</span></Link>
+          <Link className="feature-card" href="/perfil"><span className="feature-icon">07</span><h3>O seu perfil</h3><p>Reúna as marcações, o cartão e a fidelização num só lugar.</p><span className="feature-action">Criar ou abrir conta →</span></Link>
         </section>
       </main>
     </CustomerShell>

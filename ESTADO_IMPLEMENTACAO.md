@@ -91,6 +91,30 @@ O próximo passo é validar estes fluxos na demonstração com dados do seed. In
 
 ## Próximos passos sugeridos
 
+## Incremento actual — cartão virtual
+
+| Área | Estado | Implementação e limites |
+|---|---|---|
+| Cartão virtual com QR | 🟡 | `/cartao` valida código e telefone de uma marcação e apresenta identificador opaco persistido por cliente. O QR contém somente esse identificador e não autoriza débitos. Não existe ainda endpoint operacional para leitura/associação do cartão pela equipa. |
+
+## Incremento actual — estatísticas operacionais
+
+| Área | Estado | Implementação e limites |
+|---|---|---|
+| Estatísticas operacionais | 🟡 | O painel ADMIN consulta períodos de 7, 30 ou 90 dias e mostra totais por estado, serviços mais procurados, horários de maior procura e pagamentos directos registados por método. Pagamentos da carteira demonstrativa são apresentados separadamente. Os dados não equivalem a contabilidade nem incluem integrações financeiras. |
+
+## Incremento actual — registo administrativo de pagamentos
+
+| Área | Estado | Implementação e limites |
+|---|---|---|
+| Pagamentos de marcações | 🟡 | A equipa ADMIN pode registar numerário recebido ou outro método confirmado para marcação aceite/concluída. O backend usa o preço guardado no pedido, impede duplicados e regista o funcionário responsável. Não processa pagamentos nem integra bancos; carteira demonstrativa mantém movimentos separados. |
+
+## Incremento actual — proposta de pagamento Moza
+
+| Área | Estado | Implementação e limites |
+|---|---|---|
+| Checkout Moza demonstrativo | 🟡 | `/pagamento` cria um pedido pendente associado a marcação aceite e permite à equipa mudar o estado após validação manual. A interface e API indicam que é simulação; não há chamada ao Moza/SIMO, geração de referência, confirmação bancária ou movimento financeiro. A integração requer adesão e especificações aprovadas pelo banco. |
+
 1. Validar os fluxos recentes em dispositivos/navegadores de demonstração e rever o conteúdo ilustrativo com avaliadores.
 2. Implementar cartão QR de identificação sem capacidade de autorizar débitos, caso seja prioritário.
 3. Acrescentar dashboard e estatísticas depois de existir histórico operacional suficiente.

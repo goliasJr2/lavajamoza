@@ -7,6 +7,7 @@ type Place = {
   category: "SHOPS" | "FOOD" | "ENTERTAINMENT";
   description: string;
   estimatedMinutes: number;
+  externalUrl: string | null;
   isDemo: boolean;
 };
 

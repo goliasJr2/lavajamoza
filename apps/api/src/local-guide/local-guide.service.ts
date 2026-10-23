@@ -1,5 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { CreateLocalPlaceDto } from "./dto/create-local-place.dto";
+import { UpdateLocalPlaceDto } from "./dto/update-local-place.dto";
 
 @Injectable()
 export class LocalGuideService {
@@ -9,7 +12,42 @@ export class LocalGuideService {
     return this.prisma.localPlace.findMany({
       where: { isActive: true, isDemo: true },
       orderBy: [{ category: "asc" }, { estimatedMinutes: "asc" }],
-      select: { id: true, name: true, category: true, description: true, estimatedMinutes: true, isDemo: true },
+      select: { id: true, name: true, category: true, description: true, estimatedMinutes: true, externalUrl: true, isDemo: true },
     });
+  }
+
+  listForManagement() {
+    return this.prisma.localPlace.findMany({ orderBy: [{ isActive: "desc" }, { category: "asc" }, { name: "asc" }] });
+  }
+
+  async create(input: CreateLocalPlaceDto) {
+    try {
+      return await this.prisma.localPlace.create({ data: { ...input, isDemo: true } });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        throw new ConflictException("JÃ¡ existe uma sugestÃ£o com esse nome.");
+      }
+      throw error;
+    }
+  }
+
+  async update(id: string, input: UpdateLocalPlaceDto) {
+    const existing = await this.prisma.localPlace.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException("SugestÃ£o nÃ£o encontrada.");
+    try {
+      return await this.prisma.localPlace.update({ where: { id }, data: input });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        throw new ConflictException("JÃ¡ existe uma sugestÃ£o com esse nome.");
+      }
+      throw error;
+    }
+  }
+
+  async remove(id: string) {
+    const existing = await this.prisma.localPlace.findUnique({ where: { id }, select: { id: true } });
+    if (!existing) throw new NotFoundException("SugestÃ£o nÃ£o encontrada.");
+    await this.prisma.localPlace.delete({ where: { id } });
+    return { id: existing.id };
   }
 }

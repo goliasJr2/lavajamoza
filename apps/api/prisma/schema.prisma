@@ -21,6 +21,28 @@ enum BookingStatus {
   REJECTED
 }
 
+enum RecordedPaymentMethod {
+  CASH
+  OTHER
+  MOZA_POS_DEMO
+}
+
+enum RecordedPaymentStatus {
+  PENDING
+  CONFIRMED
+}
+
+enum CustomerAccountType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum CustomerAccountStatus {
+  ACTIVE
+  PENDING
+  REJECTED
+}
+
 model StaffUser {
   id                  String               @id @default(cuid())
   email               String               @unique
@@ -29,6 +51,8 @@ model StaffUser {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   bookingStatusEvents BookingStatusEvent[]
+  recordedPayments    RecordedPayment[]
+  reviewedBusinesses  Customer[]           @relation("BusinessAccountReviewer")
 }
 
 model Service {
@@ -48,17 +72,30 @@ model Service {
 }
 
 model Customer {
-  id        String   @id @default(cuid())
-  name      String
-  phone     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   String                @id @default(cuid())
+  cardCode             String                @unique @default(cuid())
+  name                 String
+  phone                String                @unique
+  passwordHash         String?
+  accountType          CustomerAccountType   @default(INDIVIDUAL)
+  accountStatus        CustomerAccountStatus @default(ACTIVE)
+  businessName         String?
+  nuit                 String?               @unique
+  businessReviewedAt   DateTime?
+  businessReviewedById String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
 
-  vehicles      Vehicle[]
-  bookings      Booking[]
-  demoWallet    DemoWallet?
-  demoMovements DemoMovement[]
-  notifications CustomerNotification[]
+  vehicles          Vehicle[]
+  bookings          Booking[]
+  demoWallet        DemoWallet?
+  demoMovements     DemoMovement[]
+  notifications     CustomerNotification[]
+  businessReviewer  StaffUser?             @relation("BusinessAccountReviewer", fields: [businessReviewedById], references: [id], onDelete: SetNull)
+  ratings           BookingRating[]
+  rewardRedemptions RewardRedemption[]
+
+  @@index([accountType, accountStatus, createdAt])
 }
 
 model Vehicle {
@@ -67,6 +104,7 @@ model Vehicle {
   customerId String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  isActive   Boolean  @default(true)
 
   customer Customer  @relation(fields: [customerId], references: [id], onDelete: Restrict)
   bookings Booking[]
@@ -86,28 +124,63 @@ model Booking {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
-  customer      Customer               @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  vehicle       Vehicle                @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
-  service       Service                @relation(fields: [serviceId], references: [id], onDelete: Restrict)
-  demoMovements DemoMovement[]
-  notifications CustomerNotification[]
-  statusEvents  BookingStatusEvent[]
+  customer        Customer               @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle         Vehicle                @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  service         Service                @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  demoMovements   DemoMovement[]
+  notifications   CustomerNotification[]
+  statusEvents    BookingStatusEvent[]
+  recordedPayment RecordedPayment?
+  rating          BookingRating?
 
   @@index([startsAt, endsAt, status])
   @@index([customerId, createdAt])
 }
 
-model DemoWallet {
-  id               String   @id @default(cuid())
-  customerId       String   @unique
-  loadedBalanceMzn Int      @default(0)
-  promoBalanceMzn  Int      @default(0)
-  pointsBalance    Int      @default(0)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+model BookingRating {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  customerId String
+  score      Int
+  comment    String?  @db.VarChar(1000)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  customer  Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  movements DemoMovement[]
+  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt])
+  @@index([customerId, createdAt])
+}
+
+model RecordedPayment {
+  id          String                @id @default(cuid())
+  bookingId   String                @unique
+  staffUserId String?
+  amountMzn   Int
+  method      RecordedPaymentMethod
+  status      RecordedPaymentStatus @default(CONFIRMED)
+  createdAt   DateTime              @default(now())
+
+  booking Booking    @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  staff   StaffUser? @relation(fields: [staffUserId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt])
+}
+
+model DemoWallet {
+  id                   String   @id @default(cuid())
+  customerId           String   @unique
+  loadedBalanceMzn     Int      @default(0)
+  promoBalanceMzn      Int      @default(0)
+  mozaCreditBalanceMzn Int      @default(0)
+  pointsBalance        Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  customer          Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  movements         DemoMovement[]
+  rewardRedemptions RewardRedemption[]
 }
 
 enum DemoMovementType {
@@ -116,27 +189,51 @@ enum DemoMovementType {
   PAYMENT
   POINTS_EARNED
   POINTS_REDEEMED
+  MOZA_BONUS_CREDIT
 }
 
 model DemoMovement {
-  id              String           @id @default(cuid())
-  walletId        String
-  customerId      String
-  bookingId       String?
-  type            DemoMovementType
-  amount          Int
-  loadedAmountMzn Int              @default(0)
-  promoAmountMzn  Int              @default(0)
-  description     String
-  idempotencyKey  String           @unique
-  createdAt       DateTime         @default(now())
+  id                  String           @id @default(cuid())
+  walletId            String
+  customerId          String
+  bookingId           String?
+  type                DemoMovementType
+  amount              Int
+  loadedAmountMzn     Int              @default(0)
+  promoAmountMzn      Int              @default(0)
+  mozaCreditAmountMzn Int              @default(0)
+  description         String
+  idempotencyKey      String           @unique
+  createdAt           DateTime         @default(now())
 
   wallet   DemoWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
   customer Customer   @relation(fields: [customerId], references: [id], onDelete: Restrict)
   booking  Booking?   @relation(fields: [bookingId], references: [id], onDelete: Restrict)
 
-  @@unique([bookingId, type])
   @@index([walletId, createdAt])
+}
+
+enum LoyaltyRewardType {
+  PARTNER_FOOD
+  WASH_DISCOUNT
+  AUTO_PARTNER
+}
+
+model RewardRedemption {
+  id                    String            @id @default(cuid())
+  walletId              String
+  customerId            String
+  rewardType            LoyaltyRewardType
+  pointsSpent           Int
+  promoCreditGrantedMzn Int               @default(0)
+  code                  String            @unique
+  idempotencyKey        String            @unique
+  createdAt             DateTime          @default(now())
+
+  wallet   DemoWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  customer Customer   @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@index([customerId, createdAt])
 }
 
 enum LocalPlaceCategory {
@@ -151,6 +248,7 @@ model LocalPlace {
   category         LocalPlaceCategory
   description      String
   estimatedMinutes Int
+  externalUrl      String?
   isDemo           Boolean            @default(true)
   isActive         Boolean            @default(true)
   createdAt        DateTime           @default(now())
@@ -160,19 +258,53 @@ model LocalPlace {
 }
 
 model CustomerNotification {
-  id         String    @id @default(cuid())
-  customerId String
-  bookingId  String?
-  title      String
-  message    String
-  readAt     DateTime?
-  createdAt  DateTime  @default(now())
+  id          String                   @id @default(cuid())
+  customerId  String
+  bookingId   String?
+  campaignId  String?
+  type        CustomerNotificationType @default(BOOKING)
+  title       String
+  message     String
+  actionUrl   String?
+  availableAt DateTime                 @default(now())
+  readAt      DateTime?
+  createdAt   DateTime                 @default(now())
 
-  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  booking  Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  customer Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  booking  Booking?           @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  campaign PromotionCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
 
-  @@index([customerId, createdAt])
+  @@index([customerId, availableAt, createdAt])
   @@index([customerId, readAt])
+}
+
+enum CustomerNotificationType {
+  BOOKING
+  REMINDER
+  PROMOTION
+  MARKETPLACE
+}
+
+enum PromotionCampaignStatus {
+  SCHEDULED
+  SENT
+  CANCELLED
+}
+
+model PromotionCampaign {
+  id             String                  @id @default(cuid())
+  title          String
+  message        String
+  scheduledAt    DateTime
+  sentAt         DateTime?
+  status         PromotionCampaignStatus @default(SCHEDULED)
+  actionUrl      String?
+  recipientCount Int                     @default(0)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  notifications  CustomerNotification[]
+
+  @@index([status, scheduledAt])
 }
 
 model BookingStatusEvent {

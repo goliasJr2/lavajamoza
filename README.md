@@ -59,8 +59,11 @@ As demonstrações comerciais permanecem explicitamente fictícias: o painel sep
 
 ## Documentação do projecto
 
+- [Decisões arquitecturais](DECISOES_ARQUITETURA.md)
+- [Fluxos e roteiro de verificação por utilizador](FLUXOS_E_ROTEIRO_VERIFICACAO.md)
+- [Perguntas e respostas para a apresentação](PERGUNTAS_E_RESPOSTAS.md)
+- [Estado actual da implementação](RESUMO_IMPLEMENTACAO.md)
 - [Plano de implementação](PLANO_IMPLEMENTACAO.md)
 - [Plano de testes](PLANO_TESTES.md)
-- [Arquitectura e decisões iniciais](../lava-ja-smart-arquitectura-stack.md)
 
 Ao implementar cada incremento da API, entregar também a interface correspondente e actualizar os casos relacionados em `PLANO_TESTES.md`.

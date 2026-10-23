@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type ManagedBooking = {
   id: string;
@@ -25,12 +25,42 @@ const eventLabel: Record<ManagedBooking["status"], string> = {
   REQUESTED: "Pedido recebido", ACCEPTED: "Aceite", IN_PROGRESS: "Atendimento iniciado",
   COMPLETED: "Serviço concluído", CANCELLED: "Cancelada", REJECTED: "Não aceite",
 };
+const statuses: ManagedBooking["status"][] = ["REQUESTED", "ACCEPTED", "IN_PROGRESS", "COMPLETED", "CANCELLED", "REJECTED"];
+
+function maputoDate(value: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Maputo", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date(value));
+  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
+function normalize(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-MZ").trim();
+}
 
 export default function BookingManagement({ token }: { token: string }) {
   const [bookings, setBookings] = useState<ManagedBooking[]>([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busyId, setBusyId] = useState("");
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | ManagedBooking["status"]>("ALL");
+  const [dateFilter, setDateFilter] = useState("");
+
+  const filteredBookings = useMemo(() => {
+    const needle = normalize(query);
+    return bookings.filter((booking) => {
+      const matchesQuery = !needle || normalize([
+        booking.publicCode, booking.customer.name, booking.customer.phone,
+        booking.vehicle.plate, booking.service.name,
+      ].join(" ")).includes(needle);
+      const matchesStatus = statusFilter === "ALL" || booking.status === statusFilter;
+      const matchesDate = !dateFilter || maputoDate(booking.startsAt) === dateFilter;
+      return matchesQuery && matchesStatus && matchesDate;
+    });
+  }, [bookings, dateFilter, query, statusFilter]);
+  const hasFilters = Boolean(query || dateFilter || statusFilter !== "ALL");
 
   const load = useCallback(async () => {
     setError("");
@@ -81,8 +111,24 @@ export default function BookingManagement({ token }: { token: string }) {
     <div className="booking-management-heading"><div><p className="eyebrow">Operação</p><h2>Pedidos de pré-marcação</h2><p>Confirme a disponibilidade antes de aceitar um pedido.</p></div><button className="secondary-button" type="button" onClick={() => void load()}>Actualizar lista</button></div>
     {notice && <p className="feedback success" role="status">{notice}</p>}
     {error && <p className="feedback error" role="alert">{error}</p>}
+    <div className="booking-management-filters" aria-label="Filtros de marcações">
+      <label>Pesquisar
+        <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Código, cliente, telefone, matrícula ou serviço" />
+      </label>
+      <label>Estado
+        <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)}>
+          <option value="ALL">Todos os estados</option>
+          {statuses.map((status) => <option key={status} value={status}>{label[status]}</option>)}
+        </select>
+      </label>
+      <label>Data da marcação
+        <input type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} />
+      </label>
+      {hasFilters && <button className="secondary-button" type="button" onClick={() => { setQuery(""); setStatusFilter("ALL"); setDateFilter(""); }}>Limpar filtros</button>}
+      <p className="booking-filter-count" role="status">A mostrar {filteredBookings.length} de {bookings.length} marcações</p>
+    </div>
     <div className="booking-admin-list">
-      {bookings.map((booking) => <article className="booking-admin-card" key={booking.id}>
+      {filteredBookings.map((booking) => <article className="booking-admin-card" key={booking.id}>
         <div className="booking-admin-top"><span className="booking-code">{booking.publicCode}</span><span className={`booking-admin-status status-${booking.status.toLowerCase()}`}>{label[booking.status]}</span></div>
         <h3>{booking.service.name}</h3>
         <p>{new Intl.DateTimeFormat("pt-MZ", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Maputo" }).format(new Date(booking.startsAt))} · {booking.durationAtBooking} min</p>
@@ -100,5 +146,6 @@ export default function BookingManagement({ token }: { token: string }) {
       </article>)}
       {bookings.length === 0 && !error && <p className="catalog-state">Ainda não há pedidos de pré-marcação.</p>}
     </div>
+    {bookings.length > 0 && filteredBookings.length === 0 && <p className="catalog-state">Nenhuma marcação corresponde aos filtros. Ajuste a pesquisa ou limpe os filtros.</p>}
   </section>;
 }

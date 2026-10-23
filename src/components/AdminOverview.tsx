@@ -8,14 +8,15 @@ type Summary = {
   simulatedPaymentsToday: { count: number; amountMzn: number };
   walletOperations: {
     demo: true;
-    wallets: { count: number; loadedBalanceMzn: number; promoBalanceMzn: number; totalBalanceMzn: number; pointsBalance: number };
+    wallets: { count: number; loadedBalanceMzn: number; promoBalanceMzn: number; mozaCreditBalanceMzn: number; totalBalanceMzn: number; pointsBalance: number };
     payments: { count: number; amountMzn: number };
     recentMovements: Array<{
       id: string;
-      type: "LOAD" | "PROMO_CREDIT" | "PAYMENT" | "POINTS_EARNED" | "POINTS_REDEEMED";
+      type: "LOAD" | "PROMO_CREDIT" | "PAYMENT" | "POINTS_EARNED" | "POINTS_REDEEMED" | "MOZA_BONUS_CREDIT";
       amount: number;
       loadedAmountMzn: number;
       promoAmountMzn: number;
+      mozaCreditAmountMzn: number;
       description: string;
       createdAt: string;
       customer: { name: string };
@@ -85,6 +86,7 @@ export default function AdminOverview({ token, onUnauthorized }: { token: string
           <article className="overview-card"><span>Pagamentos simulados</span><strong>{summary.walletOperations.payments.count}</strong><small>{summary.walletOperations.payments.amountMzn.toLocaleString("pt-MZ")} MT · fictícios</small></article>
         </div>
         <p className="wallet-operations-note">Total indicativo nas carteiras: <strong>{summary.walletOperations.wallets.totalBalanceMzn.toLocaleString("pt-MZ")} MT</strong>. Nenhum destes valores é dinheiro real.</p>
+        <p className="field-hint">Credito especial Moza separado: <strong>{summary.walletOperations.wallets.mozaCreditBalanceMzn.toLocaleString("pt-MZ")} MT</strong> · Pontos acumulados: <strong>{summary.walletOperations.wallets.pointsBalance.toLocaleString("pt-MZ")}</strong>.</p>
         <h4>Movimentos recentes</h4>
         {summary.walletOperations.recentMovements.length ? <div className="overview-demo-movements">{summary.walletOperations.recentMovements.map((movement) => <article className="overview-demo-movement" key={movement.id}>
           <div><strong>{movement.description}</strong><small>{movement.customer.name}{movement.booking ? ` · ${movement.booking.publicCode}` : ""} · {new Intl.DateTimeFormat("pt-MZ", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Maputo" }).format(new Date(movement.createdAt))}</small>{movement.type === "PAYMENT" && movement.loadedAmountMzn + movement.promoAmountMzn > 0 && <small>Promocional: {movement.promoAmountMzn.toLocaleString("pt-MZ")} MT · carregado: {movement.loadedAmountMzn.toLocaleString("pt-MZ")} MT</small>}</div>

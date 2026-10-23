@@ -7,6 +7,7 @@ import {
 import { BookingStatus, Prisma } from "@prisma/client";
 import { randomBytes } from "node:crypto";
 import { PrismaService } from "../prisma/prisma.service";
+import { WalletService } from "../wallet/wallet.service";
 import { BookingAvailabilityDto, CreateBookingDto } from "./dto/create-booking.dto";
 
 const ACTIVE_STATUSES: BookingStatus[] = ["REQUESTED", "ACCEPTED", "IN_PROGRESS"];
@@ -27,7 +28,7 @@ function createPublicCode() {
 
 @Injectable()
 export class BookingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly wallet: WalletService) {}
 
   async availability(input: BookingAvailabilityDto) {
     const service = await this.prisma.service.findFirst({
@@ -101,6 +102,9 @@ export class BookingsService {
           update: { name },
           create: { name, phone },
         });
+        if (customer.accountType === "BUSINESS" && customer.accountStatus !== "ACTIVE") {
+          throw new BadRequestException("A conta empresarial ainda nÃ£o foi aprovada e nÃ£o pode criar marcaÃ§Ãµes.");
+        }
 
         let vehicle = await tx.vehicle.findUnique({ where: { plate } });
         if (vehicle && vehicle.customerId !== customer.id) {
@@ -215,6 +219,7 @@ export class BookingsService {
         service: { select: { name: true } },
         vehicle: { select: { plate: true } },
         customer: { select: { name: true } },
+        rating: { select: { score: true, comment: true } },
       },
     });
     return bookings.map((booking) => ({
@@ -226,7 +231,17 @@ export class BookingsService {
       startsAt: booking.startsAt.toISOString(),
       priceMzn: booking.priceMznAtBooking,
       durationMinutes: booking.durationAtBooking,
+      rating: booking.rating,
     }));
+  }
+
+  async customerCard(code: string, rawPhone: string) {
+    const booking = await this.prisma.booking.findFirst({
+      where: { publicCode: code, customer: { phone: normalizePhone(rawPhone) } },
+      select: { customer: { select: { name: true, cardCode: true } } },
+    });
+    if (!booking) throw new NotFoundException("Não foi possível validar os dados da marcação.");
+    return { name: booking.customer.name, identifier: booking.customer.cardCode, status: "ACTIVE" as const };
   }
 
   async listForManagement() {
@@ -272,6 +287,41 @@ export class BookingsService {
       simulatedPaymentsToday: { count: demoPayments._count._all, amountMzn: demoPayments._sum.amount ?? 0 },
       recentBookings,
       generatedAt: new Date().toISOString(),
+    };
+  }
+
+  async statistics(days: number) {
+    const now = new Date();
+    const from = new Date(now.getTime() - days * 24 * 60 * 60_000);
+    const where = { startsAt: { gte: from, lte: now } };
+    const [total, completed, cancelled, grouped, appointments, payments, demoPayments] = await Promise.all([
+      this.prisma.booking.count({ where }),
+      this.prisma.booking.count({ where: { ...where, status: "COMPLETED" } }),
+      this.prisma.booking.count({ where: { ...where, status: { in: ["CANCELLED", "REJECTED"] } } }),
+      this.prisma.booking.groupBy({ by: ["serviceId"], where, _count: { _all: true }, orderBy: { _count: { serviceId: "desc" } }, take: 5 }),
+      this.prisma.booking.findMany({ where, select: { startsAt: true } }),
+      this.prisma.recordedPayment.groupBy({ by: ["method"], where: { createdAt: { gte: from, lte: now }, status: "CONFIRMED", method: { in: ["CASH", "OTHER"] } }, _count: { _all: true }, _sum: { amountMzn: true } }),
+      this.prisma.demoMovement.aggregate({ where: { type: "PAYMENT", createdAt: { gte: from, lte: now } }, _count: { _all: true }, _sum: { amount: true } }),
+    ]);
+    const serviceIds = grouped.map((item) => item.serviceId);
+    const services = serviceIds.length ? await this.prisma.service.findMany({ where: { id: { in: serviceIds } }, select: { id: true, name: true } }) : [];
+    const names = new Map(services.map((service) => [service.id, service.name]));
+    const hourCounts = new Map<string, number>();
+    for (const appointment of appointments) {
+      const hour = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hourCycle: "h23", timeZone: "Africa/Maputo" }).format(appointment.startsAt);
+      hourCounts.set(hour, (hourCounts.get(hour) ?? 0) + 1);
+    }
+    const peakHours = [...hourCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([hour, count]) => ({ hour: `${hour}:00`, count }));
+    return {
+      periodDays: days,
+      from: from.toISOString(),
+      generatedAt: now.toISOString(),
+      bookings: { total, completed, cancelled, active: total - completed - cancelled },
+      topServices: grouped.map((item) => ({ service: names.get(item.serviceId) ?? "Serviço removido", count: item._count._all })),
+      peakHours,
+      recordedPayments: payments.map((item) => ({ method: item.method, count: item._count._all, amountMzn: item._sum.amountMzn ?? 0 })),
+      demoWalletPayments: { count: demoPayments._count._all, amountMzn: demoPayments._sum.amount ?? 0 },
+      note: "Indicadores baseados na data e hora da marcação; não representam receita nem pagamentos recebidos.",
     };
   }
 
@@ -321,8 +371,25 @@ export class BookingsService {
       await tx.bookingStatusEvent.create({ data: { bookingId: booking.id, staffUserId, fromStatus, toStatus: status } });
       const notification = status === "IN_PROGRESS"
         ? { title: "Atendimento iniciado", message: `A lavagem da viatura ${booking.vehicle.plate} começou no Lava Já.` }
-        : { title: "Serviço concluído", message: `O serviço ${booking.service.name} para a viatura ${booking.vehicle.plate} foi concluído.` };
-      await tx.customerNotification.create({ data: { customerId: booking.customer.id, bookingId: booking.id, ...notification } });
+        : { title: "Serviço concluído", message: `O serviço ${booking.service.name} para a viatura ${booking.vehicle.plate} foi concluído. Quando quiser, já pode agendar a próxima lavagem.` };
+      await tx.customerNotification.create({ data: {
+        customerId: booking.customer.id, bookingId: booking.id, ...notification,
+        ...(status === "COMPLETED" ? { actionUrl: "/marcacoes" } : {}),
+      } });
+      if (status === "COMPLETED") {
+        const reminderAt = new Date();
+        reminderAt.setDate(reminderAt.getDate() + 30);
+        await tx.customerNotification.create({ data: {
+          customerId: booking.customer.id,
+          bookingId: booking.id,
+          type: "REMINDER",
+          title: "Está na altura de cuidar novamente do seu carro",
+          message: `Já passaram cerca de 30 dias desde a lavagem ${booking.publicCode}. Reserve uma nova visita quando lhe for conveniente.`,
+          actionUrl: "/marcacoes",
+          availableAt: reminderAt,
+        } });
+        await this.wallet.awardLoyaltyForBooking(booking.id, tx);
+      }
       return booking;
     });
   }

@@ -8,6 +8,7 @@ type Place = {
   category: "SHOPS" | "FOOD" | "ENTERTAINMENT";
   description: string;
   estimatedMinutes: number;
+  externalUrl: string | null;
   isDemo: boolean;
 };
 
@@ -33,6 +34,7 @@ export default function LocalGuide({ places }: { places: Place[] }) {
       <span className="demo-badge">{categoryNames[place.category]}</span>
       <h2>{place.name}</h2><p>{place.description}</p>
       <div className="local-place-meta"><span>Tempo ilustrativo</span><strong>~{place.estimatedMinutes} min</strong></div>
+      {place.externalUrl && <a className="local-place-link" href={place.externalUrl} target="_blank" rel="noreferrer">Ver localização ou contacto <span aria-hidden="true">↗</span></a>}
       <small>Não afiliado · localização não verificada</small>
     </article>)}</div> : <p className="catalog-state">Não há sugestões nesta categoria.</p>}
   </>;

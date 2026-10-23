@@ -189,4 +189,57 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 
 ## Fora da matriz actual
 
+## Cartão virtual de identificação
+
+| Tipo | Cenário | Resultado esperado |
+|---|---|---|
+| API | Pedir `/api/bookings/card` com código e telefone correspondentes | Devolve nome e identificador opaco estável do cliente |
+| Segurança | Pedir cartão com código/telefone divergentes | Não revela dados do cliente |
+| Frontend | Validar marcação e apresentar cartão | QR contém apenas o identificador opaco; não inclui telefone, saldo ou autorização de pagamento |
+| Ponta a ponta | Ler QR e tentar usá-lo como autorização de débito | QR serve apenas para identificar; pagamentos continuam a exigir validação própria da marcação |
+
+## Estatísticas operacionais
+
+| Tipo | Cenário | Resultado esperado |
+|---|---|---|
+| API/segurança | Consultar `/api/bookings/manage/statistics` sem ADMIN | Acesso não autorizado |
+| API | Consultar períodos de 7, 30 e 90 dias e período inválido | Totais, serviços, horários de pico e pagamentos por método usam apenas registos dentro do período; valor inválido é rejeitado |
+| Frontend | Consultar período com dados e sem dados | Indicadores vêm da API; listas vazias explicam falta de amostra; pagamentos demo permanecem separados dos directos |
+| Frontend | API falha ou sessão expira | Erro visível e sessão administrativa encerrada quando não autorizada |
+
+## Registo administrativo de pagamentos
+
+| Tipo | Cenário | Resultado esperado |
+|---|---|---|
+| API/segurança | Listar ou registar pagamento sem ADMIN autenticado | Acesso não autorizado e nenhum registo criado |
+| API | Registar pagamento para marcação aceite/concluída | Guarda valor do preço fixado na marcação, método, data e funcionário autenticado |
+| API | Registar pagamento em marcação pendente, rejeitada, inexistente, já paga ou paga pela carteira demo | Operação recusada sem duplicar movimentos |
+| Segurança/integridade | Enviar valor adulterado ou campos adicionais | DTO rejeita campos não permitidos e valor é sempre calculado pelo backend |
+| Frontend | Abrir painel e registar recebimento confirmado | Só marcações elegíveis aparecem; histórico mostra método, montante e funcionário; sucesso após resposta da API |
+
+## Pagamento Moza demonstrativo
+
+| Tipo | Cenário | Resultado esperado |
+|---|---|---|
+| API | Pedir pagamento com código/telefone de marcação aceite | Cria pedido pendente pelo preço guardado na marcação, sem chamada a banco ou carteira móvel |
+| API/segurança | Pedir com identidade divergente, marcação não elegível ou já paga | Operação recusada sem expor dados nem duplicar pagamento |
+| API/segurança | Confirmar pedido pendente sem sessão ADMIN | Acesso negado |
+| API | ADMIN confirma pedido Moza demo pendente | Estado muda uma vez e guarda funcionário responsável |
+| Frontend | Cliente cria pedido e consulta estado | Interface comunica pendência e explica que é demonstração sem integração bancária |
+| Frontend/equipa | ADMIN confirma a demonstração e cliente actualiza | Estado confirmado aparece como simulação, nunca como confirmação do banco |
+
+## Conta e perfil de cliente
+
+| Tipo | Cenário | Resultado esperado |
+|---|---|---|
+| API | Registar usando código/telefone de marcação correspondente e palavra-passe válida | Credencial é guardada com hash e é emitido token de cliente |
+| API/segurança | Registar com dados divergentes, tentar registar contacto já associado ou palavra-passe inválida | Pedido rejeitado; não cria nem substitui credenciais |
+| API | Entrar com telefone e palavra-passe correctos/incorretos | Token emitido apenas para credenciais válidas; erro não revela se telefone existe |
+| API/segurança | Consultar `/api/customer-auth/me` sem token, com token ADMIN ou token de cliente | Apenas token CUSTOMER acede ao próprio perfil, marcações e saldos demonstrativos |
+| Frontend | Criar conta, actualizar página, terminar sessão e voltar a entrar | Perfil é recuperado pela API; logout remove a sessão local |
+| Segurança | Enviar telefone/código de outro cliente ou tentar alterar `sub` do token | Nenhum perfil ou registo de terceiros é devolvido |
+| API/segurança | Consultar cartão, notificações ou carteira com token CUSTOMER | Devolve somente dados da conta autenticada |
+| API/segurança | Usar no endpoint de carteira um código pertencente a outro cliente | Pedido recusado; operação não lê nem altera a carteira alheia |
+| Frontend | Abrir histórico, cartão, notificações e carteira com sessão iniciada | As páginas usam a conta e não pedem nova validação código/telefone |
+
 Não testar liquidação real entre carwash, custódia de dinheiro, carregamentos ou pagamentos reais por M-Pesa/e-Mola/Moza, nem adesão efectiva de afiliados. Testar apenas as simulações e verificar que não fazem chamadas financeiras externas. Antes de uma implementação real, criar casos de teste, requisitos de reconciliação e análise de segurança próprios.

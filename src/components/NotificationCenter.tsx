@@ -5,13 +5,16 @@ import Link from "next/link";
 
 type Notification = {
   id: string;
+  type: "BOOKING" | "REMINDER" | "PROMOTION" | "MARKETPLACE";
   title: string;
   message: string;
+  actionUrl: string | null;
+  availableAt: string;
   readAt: string | null;
   createdAt: string;
   booking: { publicCode: string } | null;
 };
-type Identity = { code: string; phone: string };
+type Identity = { code: string; phone: string; account?: boolean };
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 async function readError(response: Response) {
@@ -33,8 +36,9 @@ export default function NotificationCenter({ initialCode = "" }: { initialCode?:
   const refresh = useCallback(async (currentIdentity: Identity, quiet = false) => {
     if (!quiet) setLoading(true);
     try {
-      const query = new URLSearchParams(currentIdentity);
-      const response = await fetch(`${apiUrl}/api/notifications?${query}`, { cache: "no-store" });
+      const token = currentIdentity.account ? window.sessionStorage.getItem("lavaja-customer-token") : null;
+      const query = new URLSearchParams({ code: currentIdentity.code, phone: currentIdentity.phone });
+      const response = await fetch(currentIdentity.account ? `${apiUrl}/api/customer-auth/notifications` : `${apiUrl}/api/notifications?${query}`, { headers: token ? { Authorization: `Bearer ${token}` } : {}, cache: "no-store" });
       if (!response.ok) throw new Error(await readError(response));
       const data = await response.json() as { notifications: Notification[]; unreadCount: number };
       setItems(data.notifications); setUnreadCount(data.unreadCount); setSyncError("");
@@ -43,6 +47,11 @@ export default function NotificationCenter({ initialCode = "" }: { initialCode?:
       if (quiet) setSyncError(message); else setError(message);
     } finally { if (!quiet) setLoading(false); }
   }, []);
+
+  useEffect(() => {
+    const token = window.sessionStorage.getItem("lavaja-customer-token");
+    if (token) { const identity = { code: "Conta", phone: "", account: true }; setIdentity(identity); void refresh(identity); }
+  }, [refresh]);
 
   useEffect(() => {
     if (!identity) return;
@@ -67,8 +76,9 @@ export default function NotificationCenter({ initialCode = "" }: { initialCode?:
     if (!identity) return;
     setLoading(true); setError(""); setNotice("");
     try {
-      const response = await fetch(`${apiUrl}/api/notifications/read-all`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(identity),
+      const token = identity.account ? window.sessionStorage.getItem("lavaja-customer-token") : null;
+      const response = await fetch(identity.account ? `${apiUrl}/api/customer-auth/notifications/read-all` : `${apiUrl}/api/notifications/read-all`, {
+        method: "PATCH", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(identity.account ? {} : { body: JSON.stringify(identity) }),
       });
       if (!response.ok) throw new Error(await readError(response));
       await refresh(identity, true); setNotice("Notificações marcadas como lidas.");
@@ -92,7 +102,7 @@ export default function NotificationCenter({ initialCode = "" }: { initialCode?:
       {notice && <p className="feedback success" role="status">{notice}</p>}
       {items.length ? <div className="notification-list">{items.map((item) => <article className={`notification-card${item.readAt ? " is-read" : " is-unread"}`} key={item.id}>
         <span className="notification-dot" aria-hidden="true" />
-        <div className="notification-copy"><div className="notification-card-heading"><h3>{item.title}</h3><time dateTime={item.createdAt}>{new Intl.DateTimeFormat("pt-MZ", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Maputo" }).format(new Date(item.createdAt))}</time></div><p>{item.message}</p>{item.booking && <Link href={{ pathname: "/fila", query: { code: item.booking.publicCode } }}>Acompanhar marcação →</Link>}</div>
+        <div className="notification-copy"><div className="notification-card-heading"><h3>{item.title}</h3><time dateTime={item.availableAt}>{new Intl.DateTimeFormat("pt-MZ", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Maputo" }).format(new Date(item.availableAt))}</time></div><p>{item.message}</p>{item.actionUrl ? <Link href={item.actionUrl}>{item.type === "PROMOTION" ? "Ver promoção →" : item.type === "MARKETPLACE" ? "Ver oferta →" : item.type === "REMINDER" || item.title.toLowerCase().includes("conclu") ? "Agendar próxima lavagem →" : "Abrir →"}</Link> : item.booking && <Link href={{ pathname: "/fila", query: { code: item.booking.publicCode } }}>Acompanhar marcação →</Link>}</div>
       </article>)}</div> : <p className="catalog-state">Ainda não há notificações para esta marcação.</p>}
       <button className="secondary-button" type="button" onClick={() => { setIdentity(null); setItems([]); setError(""); setNotice(""); }}>Consultar outra marcação</button>
     </section>}

@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import BookingManagement from "@/components/BookingManagement";
+import AdminStatistics from "@/components/AdminStatistics";
+import AdminPayments from "@/components/AdminPayments";
 import AdminOverview from "@/components/AdminOverview";
+import AdminLocalPlaces from "@/components/AdminLocalPlaces";
+import AdminPromotionCampaigns from "@/components/AdminPromotionCampaigns";
+import AdminCustomerAccounts from "@/components/AdminCustomerAccounts";
+import AdminMarketplaceDemo from "@/components/AdminMarketplaceDemo";
 
 type Service = {
   id: string;
@@ -209,7 +215,19 @@ export default function AdminServices() {
 
           <AdminOverview token={token} onUnauthorized={logout} />
 
+          <AdminStatistics token={token} onUnauthorized={logout} />
+
+          <AdminPayments token={token} onUnauthorized={logout} />
+
           <BookingManagement token={token} />
+
+          <AdminLocalPlaces token={token} onUnauthorized={logout} />
+
+          <AdminPromotionCampaigns token={token} onUnauthorized={logout} />
+
+          <AdminMarketplaceDemo />
+
+          <AdminCustomerAccounts token={token} onUnauthorized={logout} />
 
           <form id="services" className="create-service-card admin-form" onSubmit={createService}>
             <h2>Adicionar serviço</h2>

@@ -8,6 +8,8 @@ import { BookingsModule } from "./bookings/bookings.module";
 import { WalletModule } from "./wallet/wallet.module";
 import { LocalGuideModule } from "./local-guide/local-guide.module";
 import { NotificationsModule } from "./notifications/notifications.module";
+import { PaymentsModule } from "./payments/payments.module";
+import { CustomerAuthModule } from "./customer-auth/customer-auth.module";
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { NotificationsModule } from "./notifications/notifications.module";
     WalletModule,
     LocalGuideModule,
     NotificationsModule,
+    PaymentsModule,
+    CustomerAuthModule,
   ],
   controllers: [HealthController],
 })

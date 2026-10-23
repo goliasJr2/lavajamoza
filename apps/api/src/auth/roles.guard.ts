@@ -21,9 +21,9 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles?.length) return true;
 
     const request = context.switchToHttp().getRequest<{
-      user?: AuthenticatedStaff;
+      user?: { role: StaffRole | "CUSTOMER" };
     }>();
-    if (!request.user || !requiredRoles.includes(request.user.role)) {
+    if (!request.user || request.user.role === "CUSTOMER" || !requiredRoles.includes(request.user.role)) {
       throw new ForbiddenException("Não tem permissão para esta operação.");
     }
 

@@ -113,17 +113,62 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 **Âmbito:** apoiar a experiência durante a visita ao Lava Já, sem introduzir afiliados. As lojas, cafés, entretenimento, descrições e tempos apresentados são exemplos fictícios, não verificados e sem associação comercial. Não usar mapas, localização do dispositivo ou dados de estabelecimentos reais.
 
-**Backend:** adicionar catálogo demonstrativo de locais e notificações persistidas para recepção e transições da marcação. A consulta da caixa exige código de marcação e telefone correspondente; marcar como lidas requer a mesma verificação. Gravar a notificação e a transição de estado na mesma transacção.
+**Backend:** adicionar catálogo demonstrativo de locais e notificações persistidas para recepção e transições da marcação. Incluir lembrete agendado após a conclusão e campanhas promocionais para a caixa interna, com tipo e ligação para ofertas futuras do marketplace. A consulta da caixa exige código de marcação/telefone ou sessão autenticada; marcar como lidas requer a mesma identidade. Gravar a notificação e a transição de estado na mesma transacção.
 
-**Frontend:** criar `/ao-redor` com filtros de categoria, indicação explícita de dados ilustrativos e estados de erro/vazio; criar `/notificacoes` com consulta segura, actualização periódica enquanto aberta, leitura e ligação ao acompanhamento. Disponibilizar atalhos na página inicial, confirmação e acompanhamento. Notificações são apenas internas à aplicação; sem SMS, email ou push de sistema.
+**Frontend:** criar `/ao-redor` com filtros de categoria, indicação explícita de dados ilustrativos e estados de erro/vazio; criar `/notificacoes` com consulta segura, actualização periódica enquanto aberta, leitura, ligação ao acompanhamento e acções para reservar novamente/ver uma promoção. Disponibilizar atalhos na página inicial, confirmação e acompanhamento. Notificações são apenas internas à aplicação; sem SMS, email ou push de sistema.
 
-**Critério de conclusão:** dados de exemplo vêm da API e persistem na base de dados; cada evento relevante do pedido gera uma notificação; erro de rede/identidade não revela dados; nenhum serviço externo é chamado.
+**Critério de conclusão:** dados de exemplo vêm da API e persistem na base de dados; cada evento relevante gera uma notificação; lembretes e campanhas agendados aparecem na caixa interna na data definida; erro de rede/identidade não revela dados; nenhum serviço externo é chamado.
 
 ### Fase 8 — Auditoria das alterações de estado
 
 Persistir em cada transição o estado anterior, o novo estado, a data/hora e o utilizador autenticado que executou a acção. Criar o registo na mesma transacção da actualização da marcação/notificação. Disponibilizar a linha temporal somente no painel protegido da equipa; registos antigos sem actor não devem ser inventados retroactivamente.
 
 **Critério de conclusão:** cada aceite/rejeição/início/conclusão bem-sucedido gera um único evento consultável; falha ou transição recusada não cria auditoria; consultas públicas do cliente não revelam identidade da equipa.
+
+### Fase 9 — Contas individuais e empresariais
+
+**Estado:** implementada. O registo empresarial cria um pedido pendente, o ADMIN pode aprovar/rejeitar e a conta aprovada gere a sua frota.
+
+
+**Definição de escopo:** conta empresarial representa uma empresa cliente que agenda serviços para várias viaturas próprias. Não é uma conta de parceiro/afiliado do marketplace. Na primeira versão, cada empresa terá um contacto principal e um único acesso; vários membros e permissões empresariais ficam para uma fase posterior.
+
+**Backend:**
+
+- Adicionar ao perfil de cliente o tipo `INDIVIDUAL` ou `BUSINESS` e estado de activação `PENDING`, `ACTIVE` ou `REJECTED`. Contas existentes migram como `INDIVIDUAL` e mantêm o acesso actual.
+- Guardar perfil empresarial ligado ao cliente autenticado: nome legal, NUIT, nome do contacto principal e telefone de contacto. NUIT deve ser único quando fornecido; validação comercial externa não será alegada pelo protótipo.
+- Criar registo empresarial com palavra-passe e aprovação manual pelo único `ADMIN`. Aplicar limites de tamanho e validação aos campos e impedir que conta pendente/rejeitada use reservas, carteira e notificações empresariais.
+- Associar a frota ao perfil empresarial e garantir que apenas o contacto autenticado da empresa consulta e escolhe as suas viaturas. Preservar a regra actual de uma viatura por marcação e os conflitos de horário.
+- Expor ao `ADMIN` uma lista de empresas pendentes e operações de aprovar/rejeitar, com data e actor registados. Não misturar a autenticação empresarial com a conta administrativa.
+
+**Frontend:**
+
+- Oferecer escolha clara entre conta pessoal e conta empresarial na criação de conta/entrada.
+- Apresentar formulário de empresa e estado da aprovação; não mostrar funções empresariais como activas enquanto a conta aguarda decisão.
+- Disponibilizar à empresa a gestão da sua frota e permitir escolher uma das viaturas ao criar uma pré-marcação.
+- No painel único do Lava Já, rever os dados submetidos e aprovar/rejeitar a conta.
+
+**Critério de conclusão:** conta individual continua a funcionar sem regressão; uma empresa aprovada gere mais de uma viatura e agenda marcações para a frota; uma empresa não consulta dados de outra; conta pendente/rejeitada e cliente não autenticado não acedem à frota empresarial; nenhum tipo de conta empresarial recebe acesso ao painel administrativo.
+
+### Fase 10 — Avaliação do atendimento
+
+**Estado:** implementada. Marcações concluídas aceitam uma avaliação verificada por código e telefone, e o ADMIN consulta média, distribuição e comentários.
+
+
+**Backend:**
+
+- Criar uma avaliação associada de forma única a uma marcação concluída, ao cliente e à data de submissão.
+- Aceitar uma nota geral de 1 a 5 e comentário opcional com limite de tamanho. Validar no servidor a propriedade da marcação por sessão autenticada ou pelo par código/telefone existente.
+- Recusar avaliações de marcações inexistentes, pertencentes a terceiros, ainda não concluídas ou já avaliadas; não alterar o estado da marcação durante a avaliação.
+- Disponibilizar ao único `ADMIN` a lista recente, média e distribuição das notas. Comentários ficam privados no painel nesta fase; publicação de testemunhos depende de decisão posterior.
+
+**Frontend:**
+
+- Apresentar a acção “Avaliar atendimento” após a conclusão, na notificação de conclusão e no histórico/perfil do cliente.
+- Permitir seleccionar estrelas e escrever comentário opcional; mostrar confirmação apenas após resposta persistida pela API.
+- Mostrar avaliações submetidas e estado vazio/falha de forma clara, sem permitir submeter novamente a mesma marcação.
+- Incluir média, distribuição e comentários no painel administrativo, sem os apresentar como avaliações públicas.
+
+**Critério de conclusão:** apenas o cliente associado pode avaliar a marcação concluída; existe no máximo uma avaliação por marcação; submissões inválidas não alteram dados; a equipa consulta resumo e comentários no painel; avaliações não são publicadas automaticamente.
 
 ## Critério de sucesso do MVP
 
@@ -137,3 +182,13 @@ Um cliente consulta os serviços do Lava Já, envia uma pré-marcação válida,
 4. Quando a API/Prisma estiver configurada, aplicar migrações conforme os scripts do backend.
 
 O volume `lava_ja_postgres_data` mantém os dados entre reinícios do container. Para apagar os dados locais deliberadamente, usar `docker compose down -v`.
+
+### Fase 11 - Fidelizacao por servico e beneficio Moza
+
+**Estado:** implementada para demonstracao. Cada servico pago e concluido concede 50 pontos, sem diferenciar o servico ou meio de pagamento. Um pagamento por cartao no fluxo Moza demonstrativo concede adicionalmente 5% do valor em credito especial Moza, separado do saldo carregado, do credito promocional comum e dos pontos.
+
+**Recompensas:** 100 pontos emitem um voucher demonstrativo de parceiro alimentar; 250 pontos convertem-se em 100 MT de credito promocional para uma lavagem; 400 pontos emitem um voucher demonstrativo de servico automovel. Os codigos e movimentos ficam persistidos. Os parceiros ainda nao estao integrados, portanto os vouchers nao confirmam descontos externos.
+
+**Elegibilidade e consistencia:** os pontos sao concedidos apenas quando a marcacao esta concluida e existe pagamento confirmado; funciona quer o pagamento seja registado antes ou depois da conclusao. Cada marcacao gera pontos uma unica vez; o bonus Moza tambem e idempotente. Os creditos especiais podem ser usados como saldo promocional numa operacao da carteira demonstrativa e a origem fica identificada no extrato.
+
+**Limites da demonstracao:** o fluxo Moza continua sem ligacao ao banco, SIMO, POS ou USSD. O pagamento precisa ser validado pela equipa. A identificacao de um cliente Moza e inferida do metodo de pagamento Moza selecionado, nao de uma confirmacao bancaria de titularidade. Pontos, credito e vouchers nao representam dinheiro nem descontos de parceiros reais.

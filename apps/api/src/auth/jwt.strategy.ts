@@ -6,7 +6,7 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 export interface AuthenticatedStaff {
   sub: string;
   email: string;
-  role: "ADMIN" | "STAFF";
+  role: "ADMIN" | "STAFF" | "CUSTOMER";
 }
 
 @Injectable()

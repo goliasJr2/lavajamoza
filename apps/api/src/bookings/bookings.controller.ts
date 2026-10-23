@@ -5,11 +5,17 @@ import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
 import { BookingsService } from "./bookings.service";
 import { BookingAvailabilityDto, CreateBookingDto, FindBookingDto, UpdateBookingStatusDto } from "./dto/create-booking.dto";
-import { IsIn } from "class-validator";
+import { IsIn, IsOptional } from "class-validator";
 
 class UpdateOperationalStatusDto {
   @IsIn(["IN_PROGRESS", "COMPLETED"])
   status!: "IN_PROGRESS" | "COMPLETED";
+}
+
+class BookingStatisticsQuery {
+  @IsOptional()
+  @IsIn(["7", "30", "90"])
+  days?: string;
 }
 
 @Controller("bookings")
@@ -36,6 +42,11 @@ export class BookingsController {
     return this.bookings.findCustomerHistory(query.code, query.phone);
   }
 
+  @Get("card")
+  customerCard(@Query() query: FindBookingDto) {
+    return this.bookings.customerCard(query.code, query.phone);
+  }
+
   @Get("manage")
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("ADMIN")
@@ -48,6 +59,13 @@ export class BookingsController {
   @Roles("ADMIN")
   managementSummary() {
     return this.bookings.managementSummary();
+  }
+
+  @Get("manage/statistics")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  statistics(@Query() query: BookingStatisticsQuery) {
+    return this.bookings.statistics(Number(query.days ?? 30));
   }
 
   @Patch(":id/status")

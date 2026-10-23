@@ -30,4 +30,7 @@ export class RedeemDemoPointsDto extends WalletIdentityDto {
   @IsString()
   @Matches(/^[A-Za-z0-9_-]{12,80}$/)
   idempotencyKey!: string;
+
+  @IsIn(["PARTNER_FOOD", "WASH_DISCOUNT", "AUTO_PARTNER"])
+  reward!: "PARTNER_FOOD" | "WASH_DISCOUNT" | "AUTO_PARTNER";
 }

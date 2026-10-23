@@ -15,6 +15,7 @@ type Booking = {
   priceMzn: number;
   durationMinutes: number;
 };
+type BookingProfile = { accountType: "INDIVIDUAL" | "BUSINESS"; accountStatus: string; name: string; phone: string; vehicles: Array<{ id: string; plate: string }> };
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const statusLabels: Record<Booking["status"], string> = {
@@ -52,8 +53,24 @@ export default function BookingExperience({ services, initialServiceId }: { serv
   const [selectedTime, setSelectedTime] = useState("");
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotsError, setSlotsError] = useState("");
+  const [customerProfile, setCustomerProfile] = useState<BookingProfile | null>(null);
+  const [businessPlate, setBusinessPlate] = useState("");
+  const [useOtherPlate, setUseOtherPlate] = useState(false);
   const selected = services.find((service) => service.id === serviceId);
   const minDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Maputo" }).format(new Date());
+
+  useEffect(() => {
+    const token = window.sessionStorage.getItem("lavaja-customer-token");
+    if (!token) return;
+    void fetch(`${apiUrl}/api/customer-auth/me`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" })
+      .then((response) => response.ok ? response.json() as Promise<BookingProfile> : null)
+      .then((profile) => {
+        if (profile?.accountType === "BUSINESS" && profile.accountStatus === "ACTIVE") {
+          setCustomerProfile(profile);
+          setBusinessPlate(profile.vehicles[0]?.plate ?? "");
+        }
+      }).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     setSelectedTime("");
@@ -95,7 +112,7 @@ export default function BookingExperience({ services, initialServiceId }: { serv
       const response = await fetch(`${apiUrl}/api/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, serviceId }),
+        body: JSON.stringify({ ...payload, ...(customerProfile ? { name: customerProfile.name, phone: customerProfile.phone, ...(businessPlate ? { plate: businessPlate } : {}) } : {}), serviceId }),
       });
       if (!response.ok) throw new Error(await getError(response));
       setBooking(await response.json() as Booking);
@@ -159,9 +176,10 @@ export default function BookingExperience({ services, initialServiceId }: { serv
         )}
       </fieldset>}
       <div className="booking-step-heading second-step"><span>2</span><div><h2>Deixe os seus dados</h2><p>Para a equipa identificar a viatura e responder ao pedido.</p></div></div>
+      {customerProfile && <div className="fleet-booking-picker"><p>Conta empresarial: {customerProfile.name} · {customerProfile.phone}</p><label>Escolher viatura da frota<select value={useOtherPlate ? "OTHER" : businessPlate} onChange={(event) => { if (event.target.value === "OTHER") { setUseOtherPlate(true); setBusinessPlate(""); } else { setUseOtherPlate(false); setBusinessPlate(event.target.value); } }}><option value="">Introduzir matrícula manualmente</option>{customerProfile.vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.plate}>{vehicle.plate}</option>)}<option value="OTHER">Outra viatura</option></select></label></div>}
       <label>Nome<input name="name" autoComplete="name" placeholder="Nome e apelido" minLength={2} maxLength={100} required /></label>
       <label>Contacto telefónico<input name="phone" type="tel" autoComplete="tel" placeholder="84 123 4567" pattern="(\+?258[\s-]?)?8[2-7]([\s-]?[0-9]){7}" title="Use um número moçambicano, por exemplo 84 123 4567." required /><small>Usaremos este número para localizar o seu pedido.</small></label>
-      <label>Matrícula da viatura<input name="plate" placeholder="Ex.: ABC-123-MC" minLength={5} maxLength={12} required /></label>
+      {customerProfile && !useOtherPlate && businessPlate ? <label>Viatura seleccionada<input name="plate" value={businessPlate} readOnly required /></label> : <label>Matrícula da viatura<input name="plate" placeholder="Ex.: ABC-123-MC" minLength={5} maxLength={12} required /></label>}
       <input type="hidden" name="time" value={selectedTime} />
       <div className="demo-notice"><strong>O que acontece a seguir?</strong><br />O pedido fica registado e a equipa confirma a disponibilidade. O atendimento só fica confirmado após a validação; preços assinalados como referência são indicativos.</div>
       {selected && <div className="booking-summary"><span>{selected.durationMinutes} min estimados</span><strong>{selected.priceMzn.toLocaleString("pt-MZ")} MT</strong></div>}
