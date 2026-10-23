@@ -1726,12 +1726,26 @@ select:focus-visible {
 .payment-record-actions { display: grid; justify-items: end; gap: 8px; }
 .moza-payment-card { max-width: 680px; margin: 24px auto; }
 .moza-demo-banner { display: flex; align-items: center; gap: 11px; max-width: 720px; margin: 18px auto; padding: 13px 16px; border: 1px solid #c9e9f9; border-radius: 13px; background: #f3fbff; color: #31536a; font-size: 12px; }
-.customer-account-form { max-width: 500px; margin: 24px auto; }
+.customer-account-form { max-width: 480px; margin: 0 auto 24px; }
 .customer-account-form form { display: grid; gap: 14px; }
 .customer-account-form form label { display: grid; gap: 7px; }
-.account-mode-switch { display: flex; gap: 8px; margin-bottom: 20px; }
-.account-mode-switch button { padding: 9px 14px; border: 1px solid var(--border); border-radius: 10px; background: white; color: var(--muted); cursor: pointer; }
-.account-mode-switch button.active { border-color: var(--brand-primary); color: var(--brand-deep); font-weight: 700; }
+.account-form-heading { margin-bottom: 5px; }
+.account-form-heading .eyebrow { margin: 0 0 5px; }
+.account-form-heading h2 { margin: 0; font-size: 24px; letter-spacing: -.035em; }
+.account-form-heading > p:last-child { margin: 7px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.account-create-cta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 2px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+.account-create-cta .secondary-button { min-height: 40px; }
+.account-admin-link { margin: 14px 0 0; text-align: center; font-size: 12px; }
+.account-admin-link a { color: var(--brand-deep); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.account-back-link { display: inline-flex; width: fit-content; align-items: center; gap: 7px; padding: 3px 0; border: 0; background: transparent; color: var(--brand-deep); font-size: 12px; font-weight: 700; cursor: pointer; }
+.account-back-link:hover { text-decoration: underline; }
+.account-type-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.account-type-card { display: grid; justify-items: start; gap: 9px; min-height: 170px; padding: 17px; border: 1px solid var(--border); border-radius: 14px; background: #fbfdff; color: var(--foreground); text-align: left; cursor: pointer; transition: border-color 140ms ease, background 140ms ease, transform 140ms ease; }
+.account-type-card:hover { transform: translateY(-2px); border-color: var(--brand-primary); background: #f3fbff; }
+.account-type-icon { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 10px; background: #e8f8ff; color: var(--brand-deep); font-size: 10px; font-weight: 800; }
+.account-type-card > strong { font-size: 14px; }
+.account-type-card > small { color: var(--muted); font-size: 11px; line-height: 1.5; }
+.account-type-action { margin-top: auto; color: var(--brand-deep); font-size: 11px; font-weight: 750; }
 .customer-profile { max-width: 900px; margin: 24px auto; }
 .profile-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 22px; border: 1px solid var(--border); border-radius: 16px; background: white; }
 .profile-heading h2 { margin: 0 0 5px; }
@@ -1824,6 +1838,8 @@ img, svg, video, canvas { max-width: 100%; }
   .profile-heading { align-items: flex-start; flex-direction: column; }
   .payment-record-list article { align-items: flex-start; flex-direction: column; }
   .payment-record-actions { width: 100%; grid-template-columns: 1fr auto; align-items: center; justify-items: start; }
+  .account-type-options { grid-template-columns: 1fr; }
+  .account-type-card { min-height: 0; }
   .admin-local-places-heading, .admin-overview-heading { flex-direction: column; }
   .admin-local-places-heading > button, .admin-overview-heading > button { width: 100%; }
 }

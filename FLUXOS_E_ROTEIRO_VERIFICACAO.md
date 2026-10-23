@@ -18,7 +18,7 @@ Este guia indica por onde começar a explorar o Lava Já Smart e o que verificar
 2. Abra `/marcacoes`, escolha serviço, viatura/identificação do veículo e horário, e envie uma pré-marcação.
 3. Guarde o código apresentado. A marcação é criada como pedido pendente; isso ainda não significa que o atendimento foi aceite.
 4. A equipa decide no `/admin`. Depois de aceite, o cliente pode consultar o estado em `/fila` com código e telefone.
-5. Consulte `/marcacoes/historico` e `/notificacoes` para verificar histórico e actualizações associadas ao contacto.
+5. Consulte `/marcacoes/historico` e `/notificacoes` para verificar histórico e actualizações associadas ao contacto.  
 
 **Verifique:** validações do formulário, código gerado, persistência após recarregar e estado pendente até a decisão administrativa.
 
