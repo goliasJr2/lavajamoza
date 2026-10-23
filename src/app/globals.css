@@ -1291,6 +1291,21 @@ a {
   background: white;
 }
 
+.queue-live-card { display: grid; gap: 14px; }
+.queue-notifications-link {
+  position: static;
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  line-height: 1.4;
+  text-align: center;
+  white-space: normal;
+}
+
 .queue-card-heading {
   display: flex;
   align-items: flex-start;
@@ -1710,6 +1725,7 @@ select:focus-visible {
   .local-place-card p { min-height: 0; }
   .notification-card-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
   .notification-inbox-heading .editor-actions { flex-wrap: wrap; }
+  .queue-live-card > .queue-notifications-link { width: 100%; }
 }
 .card-lookup { max-width: 520px; margin: 28px auto; }
 .admin-statistics { margin: 32px 0; padding-top: 24px; border-top: 1px solid var(--border); }
