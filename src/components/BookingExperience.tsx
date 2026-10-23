@@ -172,7 +172,7 @@ export default function BookingExperience({ services, initialServiceId }: { serv
       {date && <fieldset className="slot-picker" disabled={loadingSlots || !!slotsError || slots.length === 0}>
         <legend>Escolha um horário</legend>
         {loadingSlots ? <p className="slot-message" role="status">A verificar disponibilidade…</p> : slotsError ? <p className="slot-message slot-error" role="alert">{slotsError}</p> : slots.length === 0 ? <p className="slot-message">Não há horários disponíveis neste dia. Escolha outra data.</p> : (
-          <div className="slot-grid">{slots.map((time) => <label className={`slot-option${selectedTime === time ? " selected" : ""}`} key={time}><input type="radio" name="timeChoice" value={time} checked={selectedTime === time} onChange={() => setSelectedTime(time)} required />{time}</label>)}</div>
+          <div className="slot-grid">{slots.map((time) => <label className={`slot-option${selectedTime === time ? " selected" : ""}`} key={time}><input type="radio" name="time" value={time} checked={selectedTime === time} onChange={() => setSelectedTime(time)} required />{time}</label>)}</div>
         )}
       </fieldset>}
       <div className="booking-step-heading second-step"><span>2</span><div><h2>Deixe os seus dados</h2><p>Para a equipa identificar a viatura e responder ao pedido.</p></div></div>
@@ -180,7 +180,6 @@ export default function BookingExperience({ services, initialServiceId }: { serv
       <label>Nome<input name="name" autoComplete="name" placeholder="Nome e apelido" minLength={2} maxLength={100} required /></label>
       <label>Contacto telefónico<input name="phone" type="tel" autoComplete="tel" placeholder="84 123 4567" pattern="(\+?258[\s-]?)?8[2-7]([\s-]?[0-9]){7}" title="Use um número moçambicano, por exemplo 84 123 4567." required /><small>Usaremos este número para localizar o seu pedido.</small></label>
       {customerProfile && !useOtherPlate && businessPlate ? <label>Viatura seleccionada<input name="plate" value={businessPlate} readOnly required /></label> : <label>Matrícula da viatura<input name="plate" placeholder="Ex.: ABC-123-MC" minLength={5} maxLength={12} required /></label>}
-      <input type="hidden" name="time" value={selectedTime} />
       <div className="demo-notice"><strong>O que acontece a seguir?</strong><br />O pedido fica registado e a equipa confirma a disponibilidade. O atendimento só fica confirmado após a validação; preços assinalados como referência são indicativos.</div>
       {selected && <div className="booking-summary"><span>{selected.durationMinutes} min estimados</span><strong>{selected.priceMzn.toLocaleString("pt-MZ")} MT</strong></div>}
       {error && <p className="feedback error" role="alert">{error}</p>}
