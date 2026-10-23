@@ -240,13 +240,11 @@ O service worker não é registado durante `next dev`. Para verificar a PWA, exe
 - Marketplace com API, parceiros reais, vouchers resgatáveis e sincronização entre dispositivos.
 - Verificação de telefone por OTP e recuperação de palavra-passe.
 - Mais perfis e permissões para além do administrador e dos clientes; paginação também está adiada.
-- Testes automatizados de API e testes ponta a ponta. Consulte o [plano de testes](PLANO_TESTES.md).
+- Testes automatizados de API e testes ponta a ponta ainda por estabelecer.
 
-## Documentação
+## Código de referência
 
-- [Decisões arquitecturais](DECISOES_ARQUITETURA.md)
-- [Fluxos e roteiro de verificação](FLUXOS_E_ROTEIRO_VERIFICACAO.md)
-- [Perguntas e respostas para a apresentação](PERGUNTAS_E_RESPOSTAS.md)
-- [Resumo da implementação](RESUMO_IMPLEMENTACAO.md)
-- [Plano de implementação](PLANO_IMPLEMENTACAO.md)
-- [Plano de testes](PLANO_TESTES.md)
+- [Módulos e regras da API](apps/api/src/)
+- [Modelo de dados Prisma](apps/api/prisma/schema.prisma)
+- [Rotas e páginas do frontend](src/app/)
+- [Componentes interactivos](src/components/)
