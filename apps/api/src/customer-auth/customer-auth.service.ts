@@ -113,11 +113,17 @@ export class CustomerAuthService {
     const customer = await this.prisma.customer.findUnique({ where: { id }, select: {
       id: true, name: true, phone: true, cardCode: true, createdAt: true, accountType: true, accountStatus: true, businessName: true, nuit: true,
       vehicles: { where: { isActive: true }, orderBy: { createdAt: "desc" }, select: { id: true, plate: true } },
-      bookings: { orderBy: { startsAt: "desc" }, take: 50, select: { publicCode: true, status: true, startsAt: true, priceMznAtBooking: true, durationAtBooking: true, rating: { select: { score: true, comment: true } }, service: { select: { name: true } }, vehicle: { select: { plate: true } } } },
+      bookings: { orderBy: { startsAt: "desc" }, take: 50, select: { publicCode: true, status: true, startsAt: true, priceMznAtBooking: true, durationAtBooking: true, serviceNamesAtBooking: true, rating: { select: { score: true, comment: true } }, service: { select: { name: true } }, vehicle: { select: { plate: true } } } },
       demoWallet: { select: { loadedBalanceMzn: true, promoBalanceMzn: true, mozaCreditBalanceMzn: true, pointsBalance: true } },
     } });
     if (!customer) throw new NotFoundException("Perfil de cliente não encontrado.");
-    return customer;
+    return {
+      ...customer,
+      bookings: customer.bookings.map((booking) => ({
+        ...booking,
+        service: { name: booking.serviceNamesAtBooking.length ? booking.serviceNamesAtBooking.join(" + ") : booking.service.name },
+      })),
+    };
   }
 
   async bookingIdentity(customerId: string, code: string) {

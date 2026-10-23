@@ -12,6 +12,7 @@ const REWARDS = {
   WASH_DISCOUNT: { points: 250, creditMzn: 100, label: "Credito promocional de 100 MT para desconto parcial numa lavagem" },
 } as const;
 const METHOD_LABEL = { MOZA_DEMO: "Moza Banco (demonstração)", MPESA_DEMO: "M-Pesa (demonstração)", EMOLA_DEMO: "e-Mola (demonstração)", PROMO_DEMO: "Crédito promocional (demonstração)" };
+const bookingServiceLabel = (booking: { serviceNamesAtBooking: string[]; service: { name: string } }) => booking.serviceNamesAtBooking.length ? booking.serviceNamesAtBooking.join(" + ") : booking.service.name;
 
 @Injectable()
 export class WalletService {
@@ -20,7 +21,7 @@ export class WalletService {
   private async verifiedBooking(input: WalletIdentityDto, client: Prisma.TransactionClient | PrismaService = this.prisma) {
     const booking = await client.booking.findFirst({
       where: { publicCode: input.code, customer: { is: { phone: normalizePhone(input.phone) } } },
-      select: { id: true, publicCode: true, customerId: true, status: true, priceMznAtBooking: true, service: { select: { name: true } } },
+      select: { id: true, publicCode: true, customerId: true, status: true, priceMznAtBooking: true, serviceNamesAtBooking: true, service: { select: { name: true } } },
     });
     if (!booking) throw new NotFoundException("Não encontrámos uma marcação com esses dados.");
     return booking;
@@ -38,7 +39,7 @@ export class WalletService {
     const mozaCreditBalanceMzn = wallet?.mozaCreditBalanceMzn ?? 0;
     return {
       demo: true,
-      booking: { code: input.code, status: booking.status, service: booking.service.name, priceMzn: booking.priceMznAtBooking },
+      booking: { code: input.code, status: booking.status, service: bookingServiceLabel(booking), priceMzn: booking.priceMznAtBooking },
       balanceMzn: loadedBalanceMzn + promoBalanceMzn + mozaCreditBalanceMzn, loadedBalanceMzn, promoBalanceMzn, mozaCreditBalanceMzn,
       pointsBalance: wallet?.pointsBalance ?? 0,
       movements: (wallet?.movements ?? []).map(({ id, type, amount, loadedAmountMzn, promoAmountMzn, mozaCreditAmountMzn, description, createdAt }) => ({ id, type, amount, loadedAmountMzn, promoAmountMzn, mozaCreditAmountMzn, description, createdAt })),
@@ -95,7 +96,7 @@ export class WalletService {
         await tx.demoMovement.create({ data: {
           walletId: wallet.id, customerId: booking.customerId, bookingId: booking.id, type: "PAYMENT",
           amount: booking.priceMznAtBooking, loadedAmountMzn, promoAmountMzn, mozaCreditAmountMzn,
-          description: `Pagamento demonstrativo: ${booking.service.name}`,
+          description: `Pagamento demonstrativo: ${bookingServiceLabel(booking)}`,
           idempotencyKey: `${input.idempotencyKey}:payment`,
         } });
         await this.awardLoyaltyForBooking(booking.id, tx);
@@ -126,7 +127,7 @@ export class WalletService {
   }
 
   async awardLoyaltyForBooking(bookingId: string, tx: Prisma.TransactionClient) {
-    const booking = await tx.booking.findUnique({ where: { id: bookingId }, select: { id: true, customerId: true, publicCode: true, status: true, service: { select: { name: true } } } });
+    const booking = await tx.booking.findUnique({ where: { id: bookingId }, select: { id: true, customerId: true, publicCode: true, status: true, serviceNamesAtBooking: true, service: { select: { name: true } } } });
     if (!booking || booking.status !== "COMPLETED") return;
     const [walletPayment, recordedPayment] = await Promise.all([
       tx.demoMovement.findFirst({ where: { bookingId, type: "PAYMENT" }, select: { id: true } }),
@@ -138,7 +139,7 @@ export class WalletService {
     const alreadyAwarded = await tx.demoMovement.findUnique({ where: { idempotencyKey: pointsKey }, select: { id: true } });
     if (alreadyAwarded) return;
     await tx.demoWallet.update({ where: { id: wallet.id }, data: { pointsBalance: { increment: 50 } } });
-    await tx.demoMovement.create({ data: { walletId: wallet.id, customerId: booking.customerId, bookingId, type: "POINTS_EARNED", amount: 50, description: `+50 pontos pela lavagem concluida: ${booking.service.name}`, idempotencyKey: pointsKey } });
+    await tx.demoMovement.create({ data: { walletId: wallet.id, customerId: booking.customerId, bookingId, type: "POINTS_EARNED", amount: 50, description: `+50 pontos pela lavagem concluida: ${bookingServiceLabel(booking)}`, idempotencyKey: pointsKey } });
     if (recordedPayment?.status === "CONFIRMED" && recordedPayment.method === "MOZA_POS_DEMO") {
       const bonusKey = `loyalty:${bookingId}:moza-credit`;
       const alreadyGranted = await tx.demoMovement.findUnique({ where: { idempotencyKey: bonusKey }, select: { id: true } });
@@ -181,11 +182,11 @@ export class WalletService {
     };
   }
 
-  private async getInTransaction(walletId: string, tx: Prisma.TransactionClient, booking: { publicCode: string; status: string; priceMznAtBooking: number; service: { name: string } }) {
+  private async getInTransaction(walletId: string, tx: Prisma.TransactionClient, booking: { publicCode: string; status: string; priceMznAtBooking: number; serviceNamesAtBooking: string[]; service: { name: string } }) {
     const wallet = await tx.demoWallet.findUniqueOrThrow({ where: { id: walletId }, include: { movements: { orderBy: { createdAt: "desc" }, take: 50 }, rewardRedemptions: { orderBy: { createdAt: "desc" }, take: 20 } } });
     return {
       demo: true,
-      booking: { code: booking.publicCode, status: booking.status, service: booking.service.name, priceMzn: booking.priceMznAtBooking },
+      booking: { code: booking.publicCode, status: booking.status, service: bookingServiceLabel(booking), priceMzn: booking.priceMznAtBooking },
       balanceMzn: wallet.loadedBalanceMzn + wallet.promoBalanceMzn + wallet.mozaCreditBalanceMzn,
       loadedBalanceMzn: wallet.loadedBalanceMzn,
       promoBalanceMzn: wallet.promoBalanceMzn,

@@ -39,7 +39,7 @@ export default async function Home() {
           </div>
           <div className="hero-art" aria-hidden="true">
             <div className="water-drop">✦</div>
-            <div className="wash-card"><span className="wash-card-label">LAVA JÁ</span><span className="wash-card-car">🚘</span><span className="wash-card-sparkle sparkle-one">✦</span><span className="wash-card-sparkle sparkle-two">✧</span></div>
+            <div className="wash-card"><img className="wash-card-image" src="/icons/lava-ja-512.png" alt="" /><span className="wash-card-sparkle sparkle-one">✦</span><span className="wash-card-sparkle sparkle-two">✧</span></div>
             <span className="art-orbit orbit-one" /><span className="art-orbit orbit-two" />
           </div>
         </section>

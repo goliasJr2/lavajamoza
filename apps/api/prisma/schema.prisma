@@ -121,6 +121,8 @@ model Booking {
   endsAt            DateTime
   priceMznAtBooking Int
   durationAtBooking Int
+  serviceNamesAtBooking String[] @default([])
+  bundleDiscountMznAtBooking Int @default(0)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 

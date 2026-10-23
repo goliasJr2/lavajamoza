@@ -12,6 +12,8 @@ Aplicação web para clientes e equipa de um único carwash: Lava Já, na Matola
 
 Os logótipos oficiais estão em `public/brand/`. Os serviços, credenciais e dados de cliente do seed são demonstrativos; ajuste os valores no `.env` antes de usar o painel.
 
+O catálogo de exemplo inclui Lavagem Simples, Lavagem Completa, Lavagem de Motor, Aspiração, Polimento e Revisão. Os preços são referências demonstrativas editáveis no painel. Na pré-marcação, o cliente pode combinar serviços; pacotes com dois ou mais serviços recebem 10% de desconto calculado e persistido pela API.
+
 ## Arranque local
 
 Pré-requisitos: Node.js 22.12+ e Docker com Docker Compose.

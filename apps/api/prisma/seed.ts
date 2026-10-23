@@ -25,29 +25,52 @@ async function main() {
 
   const demoServices = [
     {
-      name: "Lavagem exterior",
-      description: "Pré-lavagem, lavagem exterior e secagem manual.",
+      name: "Lavagem Simples",
+      description: "Lavagem exterior e secagem manual.",
       priceMzn: 350,
       durationMinutes: 30,
     },
     {
-      name: "Lavagem completa",
+      name: "Lavagem Completa",
       description: "Lavagem exterior, aspiração e limpeza do habitáculo.",
       priceMzn: 700,
       durationMinutes: 60,
     },
     {
-      name: "Lavagem premium",
-      description: "Lavagem completa com acabamento e tratamento de pneus.",
-      priceMzn: 1200,
+      name: "Lavagem de Motor",
+      description: "Limpeza cuidada do compartimento do motor.",
+      priceMzn: 500,
+      durationMinutes: 45,
+    },
+    {
+      name: "Aspiração",
+      description: "Aspiração dos bancos, tapetes e interior da viatura.",
+      priceMzn: 250,
+      durationMinutes: 20,
+    },
+    {
+      name: "Polimento",
+      description: "Polimento exterior para melhorar o acabamento da pintura.",
+      priceMzn: 1000,
       durationMinutes: 90,
     },
+    {
+      name: "Revisão",
+      description: "Verificação visual básica dos principais níveis e componentes.",
+      priceMzn: 500,
+      durationMinutes: 45,
+    },
   ];
+
+  await prisma.service.updateMany({
+    where: { name: { in: ["Lavagem exterior", "Lavagem completa", "Lavagem premium"] } },
+    data: { isActive: false },
+  });
 
   for (const service of demoServices) {
     await prisma.service.upsert({
       where: { name: service.name },
-      update: {},
+      update: { description: service.description, priceMzn: service.priceMzn, durationMinutes: service.durationMinutes, isActive: true, isDemo: true },
       create: { ...service, isDemo: true },
     });
   }
@@ -72,9 +95,9 @@ async function main() {
     return new Date(`${date.toISOString().slice(0, 10)}T${time}:00+02:00`);
   };
   const demoBookings = [
-    { code: "LAVA1001", service: "Lavagem exterior", status: "REQUESTED" as const, date: maputoTime(1, "10:00") },
-    { code: "LAVA1002", service: "Lavagem completa", status: "ACCEPTED" as const, date: maputoTime(2, "13:00") },
-    { code: "LAVA1003", service: "Lavagem premium", status: "COMPLETED" as const, date: maputoTime(-1, "09:00") },
+    { code: "LAVA1001", service: "Lavagem Simples", status: "REQUESTED" as const, date: maputoTime(1, "10:00") },
+    { code: "LAVA1002", service: "Lavagem Completa", status: "ACCEPTED" as const, date: maputoTime(2, "13:00") },
+    { code: "LAVA1003", service: "Polimento", status: "COMPLETED" as const, date: maputoTime(-1, "09:00") },
   ];
   for (const sample of demoBookings) {
     const service = serviceByName[sample.service];
@@ -86,12 +109,14 @@ async function main() {
         startsAt: sample.date,
         endsAt: new Date(sample.date.getTime() + service.durationMinutes * 60_000),
         priceMznAtBooking: service.priceMzn, durationAtBooking: service.durationMinutes,
+        serviceNamesAtBooking: [service.name], bundleDiscountMznAtBooking: 0,
       },
       create: {
         publicCode: sample.code, customerId: customer.id, vehicleId: vehicle.id, serviceId: service.id,
         status: sample.status, startsAt: sample.date,
         endsAt: new Date(sample.date.getTime() + service.durationMinutes * 60_000),
         priceMznAtBooking: service.priceMzn, durationAtBooking: service.durationMinutes,
+        serviceNamesAtBooking: [service.name], bundleDiscountMznAtBooking: 0,
       },
     });
     const notification = await prisma.customerNotification.findFirst({ where: { customerId: customer.id, bookingId: booking.id, title: "Actualização de demonstração" } });

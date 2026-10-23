@@ -1,0 +1,3 @@
+ALTER TABLE "Booking"
+ADD COLUMN "serviceNamesAtBooking" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN "bundleDiscountMznAtBooking" INTEGER NOT NULL DEFAULT 0;

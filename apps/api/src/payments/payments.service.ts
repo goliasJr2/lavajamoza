@@ -2,15 +2,18 @@ import { ConflictException, Injectable, NotFoundException, BadRequestException }
 import { PrismaService } from "../prisma/prisma.service";
 import { WalletService } from "../wallet/wallet.service";
 
+const bookingServiceLabel = (booking: { serviceNamesAtBooking: string[]; service: { name: string } }) => booking.serviceNamesAtBooking.length ? booking.serviceNamesAtBooking.join(" + ") : booking.service.name;
+
 @Injectable()
 export class PaymentsService {
   constructor(private readonly prisma: PrismaService, private readonly wallet: WalletService) {}
 
-  list() {
-    return this.prisma.recordedPayment.findMany({
+  async list() {
+    const payments = await this.prisma.recordedPayment.findMany({
       orderBy: { createdAt: "desc" }, take: 100,
-      include: { staff: { select: { email: true } }, booking: { select: { publicCode: true, priceMznAtBooking: true, service: { select: { name: true } }, customer: { select: { name: true } } } } },
+      include: { staff: { select: { email: true } }, booking: { select: { publicCode: true, priceMznAtBooking: true, serviceNamesAtBooking: true, service: { select: { name: true } }, customer: { select: { name: true } } } } },
     });
+    return payments.map((payment) => ({ ...payment, booking: { ...payment.booking, service: { name: bookingServiceLabel(payment.booking) } } }));
   }
 
   async requestMozaDemo(code: string, rawPhone: string) {
@@ -44,10 +47,10 @@ export class PaymentsService {
       }
       const payment = await tx.recordedPayment.findUniqueOrThrow({
         where: { id },
-        include: { staff: { select: { email: true } }, booking: { select: { id: true, publicCode: true, service: { select: { name: true } }, customer: { select: { name: true } } } } },
+        include: { staff: { select: { email: true } }, booking: { select: { id: true, publicCode: true, serviceNamesAtBooking: true, service: { select: { name: true } }, customer: { select: { name: true } } } } },
       });
       await this.wallet.awardLoyaltyForBooking(payment.booking.id, tx);
-      return payment;
+      return { ...payment, booking: { ...payment.booking, service: { name: bookingServiceLabel(payment.booking) } } };
     });
   }
 
@@ -59,9 +62,9 @@ export class PaymentsService {
     if (demoPayment) throw new ConflictException("Esta marcacao ja foi paga pela carteira demonstrativa.");
     try {
       return await this.prisma.$transaction(async (tx) => {
-        const payment = await tx.recordedPayment.create({ data: { bookingId, staffUserId, method, amountMzn: booking.priceMznAtBooking }, include: { staff: { select: { email: true } }, booking: { select: { id: true, publicCode: true, service: { select: { name: true } }, customer: { select: { name: true } } } } } });
+        const payment = await tx.recordedPayment.create({ data: { bookingId, staffUserId, method, amountMzn: booking.priceMznAtBooking }, include: { staff: { select: { email: true } }, booking: { select: { id: true, publicCode: true, serviceNamesAtBooking: true, service: { select: { name: true } }, customer: { select: { name: true } } } } } });
         await this.wallet.awardLoyaltyForBooking(bookingId, tx);
-        return payment;
+        return { ...payment, booking: { ...payment.booking, service: { name: bookingServiceLabel(payment.booking) } } };
       });
     } catch (error) {
       if (error && typeof error === "object" && "code" in error && error.code === "P2002") throw new ConflictException("Ja existe um pagamento registado para esta marcacao.");

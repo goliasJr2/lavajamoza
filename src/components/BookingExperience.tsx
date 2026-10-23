@@ -13,6 +13,7 @@ type Booking = {
   startsAt: string;
   endsAt: string;
   priceMzn: number;
+  discountMzn: number;
   durationMinutes: number;
 };
 type BookingProfile = { accountType: "INDIVIDUAL" | "BUSINESS"; accountStatus: string; name: string; phone: string; vehicles: Array<{ id: string; plate: string }> };
@@ -43,7 +44,7 @@ function formatDate(value: string) {
 }
 
 export default function BookingExperience({ services, initialServiceId }: { services: Service[]; initialServiceId?: string }) {
-  const [serviceId, setServiceId] = useState(initialServiceId ?? services[0]?.id ?? "");
+  const [serviceIds, setServiceIds] = useState<string[]>([initialServiceId ?? services[0]?.id ?? ""]);
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -56,7 +57,11 @@ export default function BookingExperience({ services, initialServiceId }: { serv
   const [customerProfile, setCustomerProfile] = useState<BookingProfile | null>(null);
   const [businessPlate, setBusinessPlate] = useState("");
   const [useOtherPlate, setUseOtherPlate] = useState(false);
-  const selected = services.find((service) => service.id === serviceId);
+  const selectedServices = services.filter((service) => serviceIds.includes(service.id));
+  const subtotalMzn = selectedServices.reduce((total, service) => total + service.priceMzn, 0);
+  const discountMzn = selectedServices.length > 1 ? Math.round(subtotalMzn * 0.1) : 0;
+  const packagePriceMzn = subtotalMzn - discountMzn;
+  const durationMinutes = selectedServices.reduce((total, service) => total + service.durationMinutes, 0);
   const minDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Maputo" }).format(new Date());
 
   useEffect(() => {
@@ -76,14 +81,14 @@ export default function BookingExperience({ services, initialServiceId }: { serv
     setSelectedTime("");
     setSlots([]);
     setSlotsError("");
-    if (!date || !serviceId) {
+    if (!date || serviceIds.length === 0) {
       setLoadingSlots(false);
       return;
     }
 
     const controller = new AbortController();
     setLoadingSlots(true);
-    const params = new URLSearchParams({ date, serviceId });
+    const params = new URLSearchParams({ date, serviceIds: serviceIds.join(",") });
     void fetch(`${apiUrl}/api/bookings/availability?${params}`, { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error(await getError(response));
@@ -99,7 +104,11 @@ export default function BookingExperience({ services, initialServiceId }: { serv
       });
 
     return () => controller.abort();
-  }, [date, serviceId]);
+  }, [date, serviceIds]);
+
+  function toggleService(id: string) {
+    setServiceIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -112,7 +121,7 @@ export default function BookingExperience({ services, initialServiceId }: { serv
       const response = await fetch(`${apiUrl}/api/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, ...(customerProfile ? { name: customerProfile.name, phone: customerProfile.phone, ...(businessPlate ? { plate: businessPlate } : {}) } : {}), serviceId }),
+        body: JSON.stringify({ ...payload, ...(customerProfile ? { name: customerProfile.name, phone: customerProfile.phone, ...(businessPlate ? { plate: businessPlate } : {}) } : {}), serviceId: serviceIds[0], serviceIds }),
       });
       if (!response.ok) throw new Error(await getError(response));
       setBooking(await response.json() as Booking);
@@ -151,6 +160,7 @@ export default function BookingExperience({ services, initialServiceId }: { serv
         <div><dt>Data e hora pretendidas</dt><dd>{formatDate(booking.startsAt)}</dd></div>
         <div><dt>Serviço</dt><dd>{booking.service} · {booking.durationMinutes} min</dd></div>
         <div><dt>Viatura</dt><dd>{booking.plate}</dd></div>
+        {booking.discountMzn > 0 && <div><dt>Desconto do pacote</dt><dd>{booking.discountMzn.toLocaleString("pt-MZ")} MT</dd></div>}
         <div><dt>Preço indicativo</dt><dd>{booking.priceMzn.toLocaleString("pt-MZ")} MT</dd></div>
       </dl>
       <p className="demo-notice">O seu pedido foi guardado pela equipa. Guarde o código e consulte o acompanhamento para ver quando a marcação for confirmada.</p>
@@ -162,11 +172,15 @@ export default function BookingExperience({ services, initialServiceId }: { serv
     <div className="booking-layout">
     <form className="demo-form" onSubmit={submit}>
       <div className="booking-step-heading"><span>1</span><div><h2>Escolha o serviço e o horário</h2><p>Veja primeiro as opções para a sua visita.</p></div></div>
-      <label>Qual serviço pretende?
-        <select value={serviceId} onChange={(event) => setServiceId(event.target.value)} required>
-          {services.map((service) => <option value={service.id} key={service.id}>{service.name} — {service.priceMzn.toLocaleString("pt-MZ")} MT{service.isDemo ? " (preço de exemplo)" : ""}</option>)}
-        </select>
-      </label>
+      <fieldset className="service-package-picker">
+        <legend>Escolha um serviço ou crie o seu pacote</legend>
+        <p className="field-hint">Ao combinar dois ou mais serviços, recebe automaticamente 10% de desconto.</p>
+        {services.map((service) => <label className="package-service-option" key={service.id}>
+          <input type="checkbox" checked={serviceIds.includes(service.id)} onChange={() => toggleService(service.id)} />
+          <span><strong>{service.name}</strong><small>{service.durationMinutes} min · preço de referência</small></span>
+          <b>{service.priceMzn.toLocaleString("pt-MZ")} MT</b>
+        </label>)}
+      </fieldset>
       <label>Que dia prefere?<input name="date" type="date" min={minDate} value={date} onChange={(event) => setDate(event.target.value)} required /></label>
       <p className="field-hint">Horário de atendimento: das 08:00 às 18:00. Os horários mostrados já consideram a duração do serviço.</p>
       {date && <fieldset className="slot-picker" disabled={loadingSlots || !!slotsError || slots.length === 0}>
@@ -181,16 +195,22 @@ export default function BookingExperience({ services, initialServiceId }: { serv
       <label>Contacto telefónico<input name="phone" type="tel" autoComplete="tel" placeholder="84 123 4567" pattern="(\+?258[\s-]?)?8[2-7]([\s-]?[0-9]){7}" title="Use um número moçambicano, por exemplo 84 123 4567." required /><small>Usaremos este número para localizar o seu pedido.</small></label>
       {customerProfile && !useOtherPlate && businessPlate ? <label>Viatura seleccionada<input name="plate" value={businessPlate} readOnly required /></label> : <label>Matrícula da viatura<input name="plate" placeholder="Ex.: ABC-123-MC" minLength={5} maxLength={12} required /></label>}
       <div className="demo-notice"><strong>O que acontece a seguir?</strong><br />O pedido fica registado e a equipa confirma a disponibilidade. O atendimento só fica confirmado após a validação; preços assinalados como referência são indicativos.</div>
-      {selected && <div className="booking-summary"><span>{selected.durationMinutes} min estimados</span><strong>{selected.priceMzn.toLocaleString("pt-MZ")} MT</strong></div>}
+      {selectedServices.length > 0 && <div className="package-price-summary">
+        <p><span>{selectedServices.length === 1 ? selectedServices[0].name : "Pacote personalizado"}</span><strong>{durationMinutes} min estimados</strong></p>
+        {selectedServices.length > 1 && <small>{selectedServices.map((service) => service.name).join(" + ")}</small>}
+        <p><span>Subtotal</span><span>{subtotalMzn.toLocaleString("pt-MZ")} MT</span></p>
+        {discountMzn > 0 && <p className="package-discount"><span>Desconto automático (10%)</span><span>−{discountMzn.toLocaleString("pt-MZ")} MT</span></p>}
+        <p className="package-total"><span>Preço indicativo</span><strong>{packagePriceMzn.toLocaleString("pt-MZ")} MT</strong></p>
+      </div>}
       {error && <p className="feedback error" role="alert">{error}</p>}
-      <button className="primary-button" type="submit" disabled={loading || !selectedTime}>{loading ? "A enviar pedido…" : "Enviar pedido à equipa"}</button>
+      <button className="primary-button" type="submit" disabled={loading || !selectedTime || selectedServices.length === 0}>{loading ? "A enviar pedido…" : "Enviar pedido à equipa"}</button>
       <p className="form-privacy-note">Ao continuar, os dados serão usados para gerir este pedido de pré-marcação.</p>
     </form>
 
       <aside className="booking-sidecard">
         <p className="eyebrow">Resumo da visita</p>
-        <h2>{selected?.name ?? "Escolha um serviço"}</h2>
-        {selected && <><div className="booking-summary"><span>Duração estimada</span><strong>{selected.durationMinutes} min</strong></div><div className="booking-summary"><span>{selected.isDemo ? "Preço de exemplo" : "Preço"}</span><strong>{selected.priceMzn.toLocaleString("pt-MZ")} MT</strong></div><p className="field-hint">{selected.isDemo ? "Este valor é apenas ilustrativo; não será cobrado online." : "A equipa confirmará o valor ao validar o pedido."}</p></>}
+        <h2>{selectedServices.length > 1 ? "Pacote personalizado" : selectedServices[0]?.name ?? "Escolha um serviço"}</h2>
+        {selectedServices.length > 0 && <><div className="booking-summary"><span>Duração estimada</span><strong>{durationMinutes} min</strong></div><div className="booking-summary"><span>Preço indicativo</span><strong>{packagePriceMzn.toLocaleString("pt-MZ")} MT</strong></div><p className="field-hint">Preço de referência. O desconto do pacote é calculado e guardado pela API; não há cobrança online.</p></>}
         {date && <div className="booking-summary"><span>Dia escolhido</span><strong>{new Intl.DateTimeFormat("pt-MZ", { dateStyle: "medium", timeZone: "Africa/Maputo" }).format(new Date(`${date}T12:00:00+02:00`))}</strong></div>}
         {selectedTime && <div className="booking-summary"><span>Hora escolhida</span><strong>{selectedTime}</strong></div>}
         <div className="sidecard-note"><span className="open-dot" /> Lava Já · Matola<br /><small>Atendimento das 08:00 às 18:00</small></div>

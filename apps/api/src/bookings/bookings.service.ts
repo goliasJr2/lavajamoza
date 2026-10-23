@@ -12,6 +12,11 @@ import { BookingAvailabilityDto, CreateBookingDto } from "./dto/create-booking.d
 
 const ACTIVE_STATUSES: BookingStatus[] = ["REQUESTED", "ACCEPTED", "IN_PROGRESS"];
 const MAPUTO_OFFSET = "+02:00";
+const PACKAGE_DISCOUNT_PERCENT = 10;
+
+function serviceLabel(names: string[], fallback: string) {
+  return names.length ? names.join(" + ") : fallback;
+}
 
 function normalizePhone(value: string) {
   const digits = value.replace(/\D/g, "");
@@ -31,11 +36,16 @@ export class BookingsService {
   constructor(private readonly prisma: PrismaService, private readonly wallet: WalletService) {}
 
   async availability(input: BookingAvailabilityDto) {
-    const service = await this.prisma.service.findFirst({
-      where: { id: input.serviceId, isActive: true },
-      select: { durationMinutes: true },
+    const requestedIds = input.serviceIds?.split(",") ?? (input.serviceId ? [input.serviceId] : []);
+    if (!requestedIds.length || requestedIds.length > 6 || new Set(requestedIds).size !== requestedIds.length) {
+      throw new BadRequestException("Escolha entre um e seis serviços diferentes.");
+    }
+    const selectedServices = await this.prisma.service.findMany({
+      where: { id: { in: requestedIds }, isActive: true },
+      select: { id: true, durationMinutes: true },
     });
-    if (!service) throw new BadRequestException("Este serviço já não está disponível.");
+    if (selectedServices.length !== requestedIds.length) throw new BadRequestException("Um dos serviços escolhidos já não está disponível.");
+    const durationMinutes = selectedServices.reduce((total, service) => total + service.durationMinutes, 0);
 
     const dayCheck = new Date(`${input.date}T12:00:00${MAPUTO_OFFSET}`);
     if (Number.isNaN(dayCheck.getTime()) || dayCheck.toISOString().slice(0, 10) !== input.date) {
@@ -53,25 +63,36 @@ export class BookingsService {
     });
 
     const slots: string[] = [];
-    const lastStart = 18 * 60 - service.durationMinutes;
+    const lastStart = 18 * 60 - durationMinutes;
     for (let minute = 8 * 60; minute <= lastStart; minute += 30) {
       const hour = String(Math.floor(minute / 60)).padStart(2, "0");
       const min = String(minute % 60).padStart(2, "0");
       const startsAt = new Date(`${input.date}T${hour}:${min}:00${MAPUTO_OFFSET}`);
       if (startsAt.getTime() <= Date.now()) continue;
-      const endsAt = new Date(startsAt.getTime() + service.durationMinutes * 60_000);
+      const endsAt = new Date(startsAt.getTime() + durationMinutes * 60_000);
       const isBusy = bookings.some((booking) => booking.startsAt < endsAt && booking.endsAt > startsAt);
       if (!isBusy) slots.push(`${hour}:${min}`);
     }
 
-    return { date: input.date, serviceId: input.serviceId, durationMinutes: service.durationMinutes, slots };
+    return { date: input.date, serviceIds: requestedIds, durationMinutes, slots };
   }
 
   async create(input: CreateBookingDto) {
-    const service = await this.prisma.service.findFirst({
-      where: { id: input.serviceId, isActive: true },
+    const requestedIds = input.serviceIds ?? (input.serviceId ? [input.serviceId] : []);
+    if (!requestedIds.length || requestedIds.length > 6 || new Set(requestedIds).size !== requestedIds.length) {
+      throw new BadRequestException("Escolha entre um e seis serviços diferentes.");
+    }
+    const selectedServices = await this.prisma.service.findMany({
+      where: { id: { in: requestedIds }, isActive: true },
+      orderBy: { name: "asc" },
     });
-    if (!service) throw new BadRequestException("Este serviço já não está disponível.");
+    if (selectedServices.length !== requestedIds.length) throw new BadRequestException("Um dos serviços escolhidos já não está disponível.");
+    const namesInSelectionOrder = requestedIds.map((id) => selectedServices.find((service) => service.id === id)!.name);
+    const service = selectedServices.find((item) => item.id === requestedIds[0])!;
+    const durationMinutes = selectedServices.reduce((total, item) => total + item.durationMinutes, 0);
+    const subtotalMzn = selectedServices.reduce((total, item) => total + item.priceMzn, 0);
+    const bundleDiscountMznAtBooking = selectedServices.length > 1 ? Math.round(subtotalMzn * PACKAGE_DISCOUNT_PERCENT / 100) : 0;
+    const priceMznAtBooking = subtotalMzn - bundleDiscountMznAtBooking;
 
     const startsAt = new Date(`${input.date}T${input.time}:00${MAPUTO_OFFSET}`);
     if (Number.isNaN(startsAt.getTime()) || startsAt.toISOString().slice(0, 10) !== input.date) {
@@ -80,7 +101,7 @@ export class BookingsService {
 
     const [hourText, minuteText] = input.time.split(":");
     const startMinute = Number(hourText) * 60 + Number(minuteText);
-    const endMinute = startMinute + service.durationMinutes;
+    const endMinute = startMinute + durationMinutes;
     const openingMinute = 8 * 60;
     const closingMinute = 18 * 60;
     if (startMinute < openingMinute || endMinute > closingMinute) {
@@ -90,7 +111,7 @@ export class BookingsService {
       throw new BadRequestException("Escolha uma data e hora futuras.");
     }
 
-    const endsAt = new Date(startsAt.getTime() + service.durationMinutes * 60_000);
+    const endsAt = new Date(startsAt.getTime() + durationMinutes * 60_000);
     const phone = normalizePhone(input.phone);
     const plate = normalizePlate(input.plate);
     const name = input.name.trim().replace(/\s+/g, " ");
@@ -139,8 +160,10 @@ export class BookingsService {
             serviceId: service.id,
             startsAt,
             endsAt,
-            priceMznAtBooking: service.priceMzn,
-            durationAtBooking: service.durationMinutes,
+            priceMznAtBooking,
+            durationAtBooking: durationMinutes,
+            serviceNamesAtBooking: namesInSelectionOrder,
+            bundleDiscountMznAtBooking,
           },
           include: { service: { select: { name: true } }, vehicle: { select: { plate: true } } },
         });
@@ -158,10 +181,11 @@ export class BookingsService {
           customerName: name,
           phone,
           plate: booking.vehicle.plate,
-          service: booking.service.name,
+          service: serviceLabel(booking.serviceNamesAtBooking, booking.service.name),
           startsAt: booking.startsAt.toISOString(),
           endsAt: booking.endsAt.toISOString(),
           priceMzn: booking.priceMznAtBooking,
+          discountMzn: booking.bundleDiscountMznAtBooking,
           durationMinutes: booking.durationAtBooking,
           createdAt: booking.createdAt.toISOString(),
         };
@@ -195,10 +219,11 @@ export class BookingsService {
       status: booking.status,
       customerName: booking.customer.name,
       plate: booking.vehicle.plate,
-      service: booking.service.name,
+      service: serviceLabel(booking.serviceNamesAtBooking, booking.service.name),
       startsAt: booking.startsAt.toISOString(),
       endsAt: booking.endsAt.toISOString(),
       priceMzn: booking.priceMznAtBooking,
+      discountMzn: booking.bundleDiscountMznAtBooking,
       durationMinutes: booking.durationAtBooking,
     };
   }
@@ -227,11 +252,12 @@ export class BookingsService {
       status: booking.status,
       customerName: booking.customer.name,
       plate: booking.vehicle.plate,
-      service: booking.service.name,
+      service: serviceLabel(booking.serviceNamesAtBooking, booking.service.name),
       startsAt: booking.startsAt.toISOString(),
       priceMzn: booking.priceMznAtBooking,
       durationMinutes: booking.durationAtBooking,
       rating: booking.rating,
+      discountMzn: booking.bundleDiscountMznAtBooking,
     }));
   }
 
@@ -245,7 +271,7 @@ export class BookingsService {
   }
 
   async listForManagement() {
-    return this.prisma.booking.findMany({
+    const bookings = await this.prisma.booking.findMany({
       orderBy: [{ startsAt: "asc" }, { createdAt: "desc" }],
       take: 100,
       include: {
@@ -261,6 +287,10 @@ export class BookingsService {
         },
       },
     });
+    return bookings.map((booking) => ({
+      ...booking,
+      service: { ...booking.service, name: serviceLabel(booking.serviceNamesAtBooking, booking.service.name) },
+    }));
   }
 
   async managementSummary() {
@@ -277,7 +307,7 @@ export class BookingsService {
       this.prisma.demoMovement.aggregate({ where: { type: "PAYMENT", createdAt: { gte: dayStart, lt: dayEnd } }, _count: { _all: true }, _sum: { amount: true } }),
       this.prisma.booking.findMany({
         orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }], take: 6,
-        select: { publicCode: true, status: true, startsAt: true, priceMznAtBooking: true,
+        select: { publicCode: true, status: true, startsAt: true, priceMznAtBooking: true, serviceNamesAtBooking: true,
           service: { select: { name: true } }, vehicle: { select: { plate: true } }, customer: { select: { name: true } } },
       }),
     ]);
@@ -285,7 +315,10 @@ export class BookingsService {
       today: { bookings: today, completed: completedToday, estimatedServiceValueMzn: estimated._sum.priceMznAtBooking ?? 0 },
       queue: { requestsPending, accepted, inProgress },
       simulatedPaymentsToday: { count: demoPayments._count._all, amountMzn: demoPayments._sum.amount ?? 0 },
-      recentBookings,
+      recentBookings: recentBookings.map((booking) => ({
+        ...booking,
+        service: { ...booking.service, name: serviceLabel(booking.serviceNamesAtBooking, booking.service.name) },
+      })),
       generatedAt: new Date().toISOString(),
     };
   }

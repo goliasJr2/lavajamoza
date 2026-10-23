@@ -24,8 +24,8 @@ Este documento compara o prompt de interfaces (`PROMPT_IMPLEMENTACAO_INTERFACES.
 | Página inicial | 🟡 | `src/app/page.tsx` apresenta o catálogo vindo da API, acesso à pré-marcação e cartões para fila, crédito demonstrativo, guia local e notificações. Contactos, horário e campanhas reais não estão ligados. |
 | Registo de cliente | ⬜ | Não existe rota de registo. O backend cria/localiza o cliente durante a pré-marcação através do nome e telefone. |
 | Login de cliente | ⬜ | Não existe autenticação de cliente. |
-| Consulta de serviços | ✅ | Catálogo da API, preços/duração, estados de erro/vazio e acesso directo à pré-marcação. Gestão administrativa dos serviços também existe. |
-| Nova pré-marcação | ✅ | `/marcacoes` recolhe cliente, viatura, serviço e horário disponível; pedido fica persistido no PostgreSQL como pendente de validação da equipa. |
+| Consulta de serviços | ✅ | Catálogo da API com Lavagem Simples, Lavagem Completa, Lavagem de Motor, Aspiração, Polimento e Revisão; preços/duração, estados de erro/vazio e acesso directo à pré-marcação. Gestão administrativa dos serviços também existe. |
+| Nova pré-marcação | ✅ | `/marcacoes` recolhe cliente, viatura, um serviço ou pacote personalizado e horário disponível; combinações têm desconto demonstrativo de 10% calculado pela API e ficam persistidas no PostgreSQL como pedido pendente de validação da equipa. |
 | Confirmação do pedido | 🟡 | O formulário apresenta resultado/código devolvido pela API; ainda não existe página própria de confirmação. Pedido permanece pendente até aceitação. |
 | Minhas marcações / histórico | 🟡 | `/marcacoes/historico` lista até 50 marcações associadas ao contacto depois de verificar um código e telefone correspondentes. Não há conta de cliente; a consulta requer uma marcação de referência. |
 | Guia local e entretenimento | 🟡 | `/ao-redor` lista sugestões fictícias em três categorias, servidas pela API e guardadas no PostgreSQL. Não são estabelecimentos verificados nem afiliados; não há mapas ou localização. |

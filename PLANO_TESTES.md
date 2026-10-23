@@ -34,6 +34,7 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | Validação | Enviar preço negativo, duração inválida ou campos em falta | Erro de validação previsível; sem gravação parcial |
 | Frontend | Carregar catálogo, catálogo vazio e erro da API | Cada estado tem apresentação clara e sem preços inventados |
 | Ponta a ponta | Funcionário altera serviço e cliente abre o catálogo | Cliente vê o valor persistido mais recente |
+| Catálogo | Consultar catálogo após aplicar o seed | São apresentados Lavagem Simples, Lavagem Completa, Lavagem de Motor, Aspiração, Polimento e Revisão; serviços antigos do seed ficam inactivos |
 
 ## Fase 2 — Viatura e pré-marcação
 
@@ -56,6 +57,11 @@ Este plano acompanha os incrementos de `PLANO_IMPLEMENTACAO.md`. Cada incremento
 | Frontend | Alterar serviço/data e escolher horário disponível | Horários são actualizados para a combinação escolhida; horários ocupados ou que ultrapassam o fecho não são oferecidos |
 | Frontend | Equipa abre o painel e aceita/rejeita pedido pendente | Lista reflecte apenas o estado confirmado pela API; pedido tratado deixa de oferecer acções |
 | Ponta a ponta | Cliente cria pedido, equipa aceita e cliente consulta novamente | O mesmo pedido e o estado aceite aparecem nos dois lados |
+| Pacotes | Seleccionar dois ou mais serviços no formulário de marcação | O resumo mostra os serviços, duração total e desconto automático de 10%; preço final corresponde ao subtotal menos desconto |
+| Pacotes/API | Enviar um pacote e adulterar o preço/desconto no cliente | API calcula o preço a partir dos serviços activos; valores enviados pelo browser não controlam o total |
+| Pacotes/API | Enviar serviço inactivo, ID repetido, lista vazia ou mais de seis serviços | Pedido é rejeitado sem marcação parcial |
+| Pacotes/agenda | Consultar disponibilidade para um pacote | Horários consideram a duração somada de todos os serviços seleccionados |
+| Pacotes/persistência | Consultar pacote criado no acompanhamento, histórico, painel e carteira demonstrativa | Nome dos serviços combinados, duração e preço com desconto permanecem associados à marcação |
 
 ## Fase 3 — Fila e estado do atendimento
 

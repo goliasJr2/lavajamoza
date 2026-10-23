@@ -1,4 +1,4 @@
-import { IsIn, IsString, MaxLength, MinLength, Matches } from "class-validator";
+import { ArrayMaxSize, ArrayMinSize, ArrayUnique, IsArray, IsIn, IsOptional, IsString, MaxLength, MinLength, Matches } from "class-validator";
 
 export class CreateBookingDto {
   @IsString()
@@ -20,9 +20,18 @@ export class CreateBookingDto {
   })
   plate!: string;
 
+  @IsOptional()
   @IsString()
   @Matches(/^[a-zA-Z0-9_-]{8,32}$/)
-  serviceId!: string;
+  serviceId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(6)
+  @ArrayUnique()
+  @IsString({ each: true })
+  serviceIds?: string[];
 
   @IsString()
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
@@ -50,9 +59,15 @@ export class UpdateBookingStatusDto {
 }
 
 export class BookingAvailabilityDto {
+  @IsOptional()
   @IsString()
   @Matches(/^[a-zA-Z0-9_-]{8,32}$/)
-  serviceId!: string;
+  serviceId?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-zA-Z0-9_-]{8,32}(,[a-zA-Z0-9_-]{8,32}){0,5}$/)
+  serviceIds?: string;
 
   @IsString()
   @Matches(/^\d{4}-\d{2}-\d{2}$/)

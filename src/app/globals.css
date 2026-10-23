@@ -239,18 +239,22 @@ a {
   transform: rotate(5deg);
 }
 
-.wash-card-label {
-  color: var(--brand-deep);
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-}
+.wash-card-image { width: 205px; height: 205px; border-radius: 22px; object-fit: cover; box-shadow: 0 12px 24px rgb(1 114 212 / 14%); }
 
-.wash-card-car {
-  margin-top: 30px;
-  font-size: 92px;
-  filter: drop-shadow(0 12px 8px rgb(1 114 212 / 12%));
-}
+.service-package-picker { display: grid; gap: 10px; margin: 0; padding: 16px; border: 1px solid var(--border); border-radius: 15px; }
+.service-package-picker legend { padding: 0 7px; color: #17324b; font-size: 14px; font-weight: 750; }
+.service-package-picker > .field-hint { margin: 0 0 3px; }
+.package-service-option { display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 11px; padding: 11px 12px; border: 1px solid #dfebf1; border-radius: 11px; background: #fff; cursor: pointer; }
+.package-service-option:has(input:checked) { border-color: var(--brand-primary); background: #eef9ff; }
+.package-service-option input { width: 18px; height: 18px; accent-color: var(--brand-deep); }
+.package-service-option span { display: grid; gap: 3px; }
+.package-service-option strong, .package-service-option b { color: #17324b; font-size: 13px; }
+.package-service-option small { color: var(--muted); font-size: 11px; }
+.package-price-summary { display: grid; gap: 7px; padding: 15px; border: 1px solid #d8edf7; border-radius: 13px; background: #f5fbff; }
+.package-price-summary p { display: flex; justify-content: space-between; gap: 10px; margin: 0; color: #41576b; font-size: 13px; }
+.package-price-summary > small { color: var(--muted); line-height: 1.5; }
+.package-price-summary .package-discount { color: #087746; }
+.package-price-summary .package-total { padding-top: 8px; border-top: 1px solid #d8edf7; color: #17324b; }
 
 .wash-card-sparkle,
 .water-drop {
@@ -1528,9 +1532,7 @@ select:focus-visible {
     height: 220px;
   }
 
-  .wash-card-car {
-    font-size: 70px;
-  }
+  .wash-card-image { width: 158px; height: 158px; }
 
   .art-orbit {
     width: 260px;

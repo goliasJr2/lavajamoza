@@ -42,7 +42,7 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 ### Fase 1 — Acesso administrativo e catálogo de serviços
 
-**Estado:** primeira versão implementada; requer migração e seed locais antes da utilização. O catálogo público, o login administrativo e a gestão protegida estão ligados à API.
+**Estado:** catálogo actualizado com seis serviços do carwash; o seed mantém os preços como referências demonstrativas e desactiva os serviços de exemplo antigos. O catálogo público, o login administrativo e a gestão protegida estão ligados à API.
 
 **Backend:** API NestJS em `apps/api`, autenticação JWT para administrador, protecção de rotas administrativas, modelos Prisma de equipa e serviço, endpoint de health check, consulta pública e operações protegidas de criação/edição/activação de serviços. O seed cria uma conta administrativa e preços de exemplo.
 
@@ -52,7 +52,7 @@ O documento `LAVA JÁ SMART.docx` apresenta a visão estratégica que o protóti
 
 ### Fase 2 — Viatura e pré-marcação
 
-**Estado:** implementação inicial real concluída. Clientes, viaturas e pedidos são persistidos no PostgreSQL; a API valida serviço activo, contacto, matrícula, data/hora futura, horário de funcionamento (08:00–18:00) e conflitos de duração. O cliente recebe um código para consulta e distingue pedido recebido de atendimento confirmado. A equipa autenticada consulta pedidos e aceita/rejeita pedidos pendentes. A disponibilidade é de uma viatura por intervalo; transições depois da aceitação (em atendimento/concluída) ficam para a Fase 3.
+**Estado:** implementação inicial real concluída. Clientes, viaturas e pedidos são persistidos no PostgreSQL; a API valida serviço activo, contacto, matrícula, data/hora futura, horário de funcionamento (08:00–18:00) e conflitos de duração. O cliente pode combinar serviços num pacote; a API aplica automaticamente 10% de desconto a combinações de dois ou mais serviços e guarda nomes, duração e preço final no pedido. O cliente recebe um código para consulta e distingue pedido recebido de atendimento confirmado. A equipa autenticada consulta pedidos e aceita/rejeita pedidos pendentes. A disponibilidade é de uma viatura por intervalo; transições depois da aceitação (em atendimento/concluída) ficam para a Fase 3.
 
 **Backend:** modelos mínimos de cliente/viatura e marcação; endpoints públicos para consultar horários livres, criar um pedido e consultá-lo por código e contacto; endpoints administrativos protegidos para listar, aceitar ou rejeitar pedidos pendentes. Valida serviço activo, campos, horário, disponibilidade, sobreposição e duplicação. A data/hora é interpretada no fuso de Maputo. O estado inicial é `REQUESTED` e o preço/duração são fotografados no pedido. A disponibilidade actual considera uma viatura de cada vez; os pedidos não podem ser cancelados pelo cliente nesta etapa.
 
