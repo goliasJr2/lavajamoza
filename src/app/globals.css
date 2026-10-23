@@ -1408,14 +1408,19 @@ a {
 .info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0; }
 
 .wallet-card {
+  position: relative;
+  overflow: hidden;
   max-width: 500px;
   margin-bottom: 20px;
   padding: 25px;
   border-radius: 20px;
-  background: linear-gradient(135deg, var(--brand-deep), var(--brand-primary));
+  background: linear-gradient(125deg, #791a25 0%, #a91f2c 55%, #d7463d 100%);
   color: white;
-  box-shadow: 0 18px 40px rgb(1 114 212 / 17%);
+  box-shadow: 0 18px 40px rgb(121 26 37 / 22%);
 }
+
+.wallet-card::after { position: absolute; top: -72px; right: -46px; width: 220px; height: 220px; border: 1px solid rgb(255 255 255 / 13%); border-radius: 50%; box-shadow: 0 0 0 25px rgb(255 255 255 / 4%), 0 0 0 52px rgb(255 255 255 / 3%); content: ""; pointer-events: none; }
+.wallet-card > * { position: relative; z-index: 1; }
 
 .wallet-topline { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 10px; font-weight: 800; letter-spacing: 0.13em; }
 .wallet-card .demo-badge { background: rgb(255 255 255 / 19%); color: white; letter-spacing: 0; }
@@ -1434,6 +1439,20 @@ a {
 .credit-panel .booking-summary { margin-top: 5px; }
 .transaction-list { margin-top: 20px; }
 .transaction-list .section-heading { margin-bottom: 14px; }
+.credit-page .credit-demo-notice { max-width: 820px; }
+.credit-page .wallet-identity-form { max-width: 620px; margin: 20px 0 26px; }
+.credit-page .wallet-identity-form > .primary-button { width: 100%; }
+.credit-page .wallet-card, .credit-page .transaction-list, .credit-page .credit-actions { max-width: 820px; }
+.credit-empty-state { display: grid; max-width: 820px; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 17px; margin: 22px 0; padding: 22px; border: 1px solid var(--border); border-radius: 17px; background: white; }
+.credit-empty-icon { display: grid; width: 46px; height: 46px; place-items: center; border-radius: 14px; background: #e8f8ff; color: var(--brand-deep); font-size: 24px; font-weight: 700; }
+.credit-empty-state .eyebrow { margin: 0 0 4px; }
+.credit-empty-state h2 { margin: 0; font-size: 18px; }
+.credit-empty-state p:last-child { margin: 5px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.credit-loading { display: flex; max-width: 620px; align-items: center; gap: 12px; margin: 22px 0; padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: white; color: var(--muted); font-size: 13px; }
+.loading-spinner { width: 18px; height: 18px; flex: 0 0 18px; border: 2px solid #d7e8f2; border-top-color: var(--brand-primary); border-radius: 50%; animation: credit-spin 750ms linear infinite; }
+@keyframes credit-spin { to { transform: rotate(360deg); } }
+.credit-page .loyalty-row > div { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.credit-page .loyalty-row > b { flex: 0 0 auto; text-align: right; }
 .future-card { background: #f8fcff; }
 .future-card h2 { margin-top: 14px; }
 .future-card p { max-width: 690px; margin-bottom: 0; }
@@ -1775,14 +1794,18 @@ select:focus-visible {
 .wallet-booking-select select { padding: 11px; border: 1px solid var(--border); border-radius: 10px; background: white; }
 @media (max-width: 700px) { .payment-record-form { grid-template-columns: 1fr; } }
 .statistics-service-list li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.customer-card { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 24px; max-width: 760px; margin: 30px auto; padding: 30px; border-radius: 24px; color: white; background: linear-gradient(135deg, #0172d4, #03a8fb); box-shadow: 0 18px 50px #0172d433; }
-.customer-card .eyebrow, .customer-card p { color: #e1f6ff; }
+.customer-card { position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 24px; max-width: 760px; margin: 30px auto; padding: 30px; border: 1px solid rgb(255 255 255 / 15%); border-radius: 24px; color: white; background: linear-gradient(125deg, #791a25 0%, #a91f2c 55%, #d7463d 100%); box-shadow: 0 18px 50px rgb(121 26 37 / 24%); }
+.customer-card::before { position: absolute; top: -74px; right: -42px; width: 230px; height: 230px; border: 1px solid rgb(255 255 255 / 14%); border-radius: 50%; box-shadow: 0 0 0 27px rgb(255 255 255 / 4%), 0 0 0 56px rgb(255 255 255 / 3%); content: ""; pointer-events: none; }
+.customer-card > * { position: relative; z-index: 1; }
+.customer-card .eyebrow, .customer-card p { color: #ffe5dc; }
 .customer-card h2 { margin: 8px 0 24px; font-size: 30px; }
 .card-identifier { display: block; margin: 7px 0 18px; font-size: 20px; letter-spacing: .08em; overflow-wrap: anywhere; }
 .card-qr { display: grid; justify-items: center; gap: 8px; padding: 12px; border-radius: 14px; background: white; color: #20364a; }
 .card-qr small { font-size: 10px; }
-.customer-card .secondary-button { grid-column: 1 / -1; justify-self: start; }
-@media (max-width: 600px) { .customer-card { grid-template-columns: 1fr; padding: 22px; } .card-qr { justify-self: start; } }
+.customer-card-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.customer-card-actions .primary-link { color: #791a25; background: #fff; }
+.customer-card-actions .secondary-button { justify-self: start; border-color: rgb(255 255 255 / 36%); color: white; background: rgb(255 255 255 / 10%); }
+@media (max-width: 600px) { .customer-card { grid-template-columns: 1fr; gap: 18px; padding: 22px; } .customer-card h2 { font-size: 25px; } .card-qr { justify-self: start; } .customer-card-actions { display: grid; grid-template-columns: 1fr; } .customer-card-actions > * { width: 100%; justify-content: center; } }
 .customer-admin-panel { margin-top: 2rem; }
 .admin-rating-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1rem 0 2rem; }
 .admin-rating-summary article, .admin-review-card { border: 1px solid var(--line, #dce5e0); border-radius: 14px; background: #fff; padding: 1rem; }
@@ -1878,6 +1901,10 @@ img, svg, video, canvas { max-width: 100%; }
   .back-link { max-width: 45%; text-align: right; line-height: 1.35; }
   .login-card { width: 100%; padding: 19px; }
   .admin-overview, .overview-wallet-operations, .create-service-card, .local-place-create, .promotion-campaign-form { padding: 15px; }
+  .credit-empty-state { grid-template-columns: auto minmax(0, 1fr); gap: 13px; padding: 16px; }
+  .credit-empty-state > .primary-link { grid-column: 1 / -1; justify-content: center; }
+  .credit-page .loyalty-row { align-items: flex-start; gap: 9px; }
+  .credit-page .loyalty-row > b { max-width: 105px; font-size: 11px; }
   .local-place-editor .compact-grid, .manage-service-card .compact-grid { grid-template-columns: 1fr; }
   .overview-card { padding: 11px; }
   .overview-card > strong { font-size: clamp(19px, 6vw, 23px); }

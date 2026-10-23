@@ -54,14 +54,15 @@ export class WalletService {
         const replay = await tx.demoMovement.findUnique({ where: { idempotencyKey: input.idempotencyKey } });
         const wallet = await this.walletFor(booking.customerId, tx);
         if (replay) return this.getInTransaction(wallet.id, tx, booking);
+        const amountMzn = input.amountMzn;
         const isPromo = input.method === "PROMO_DEMO";
         await tx.demoWallet.update({ where: { id: wallet.id }, data: isPromo
-          ? { promoBalanceMzn: { increment: 500 } }
-          : { loadedBalanceMzn: { increment: 500 } } });
+          ? { promoBalanceMzn: { increment: amountMzn } }
+          : { loadedBalanceMzn: { increment: amountMzn } } });
         await tx.demoMovement.create({ data: {
-          walletId: wallet.id, customerId: booking.customerId, type: isPromo ? "PROMO_CREDIT" : "LOAD", amount: 500,
-          loadedAmountMzn: isPromo ? 0 : 500, promoAmountMzn: isPromo ? 500 : 0,
-          description: `Carregamento de 500 MT via ${METHOD_LABEL[input.method]}`,
+          walletId: wallet.id, customerId: booking.customerId, type: isPromo ? "PROMO_CREDIT" : "LOAD", amount: amountMzn,
+          loadedAmountMzn: isPromo ? 0 : amountMzn, promoAmountMzn: isPromo ? amountMzn : 0,
+          description: `Carregamento de ${amountMzn} MT via ${METHOD_LABEL[input.method]}`,
           idempotencyKey: input.idempotencyKey,
         } });
         return this.getInTransaction(wallet.id, tx, booking);

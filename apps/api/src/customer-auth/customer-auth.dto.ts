@@ -30,6 +30,7 @@ export class CustomerBookingQueryDto {
 export class CustomerWalletOperationDto {
   @IsString() @Matches(/^[A-Z0-9]{8}$/) code!: string;
   @IsString() @Matches(/^[A-Za-z0-9_-]{12,80}$/) idempotencyKey!: string;
+  @IsOptional() @IsInt() @Min(100) @Max(50000) amountMzn?: number;
   @IsOptional() @IsString() @Matches(/^(MOZA_DEMO|MPESA_DEMO|EMOLA_DEMO|PROMO_DEMO)$/) method?: string;
   @IsOptional() @IsString() @Matches(/^WASH_DISCOUNT$/) reward?: "WASH_DISCOUNT";
 }

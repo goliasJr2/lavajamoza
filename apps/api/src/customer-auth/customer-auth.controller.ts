@@ -33,7 +33,7 @@ export class CustomerAuthController {
   @Get("wallet") @UseGuards(JwtAuthGuard, CustomerAuthGuard)
   async getWallet(@Query() query: CustomerBookingQueryDto, @Req() request: { user: AuthenticatedStaff }) { return this.wallet.get(await this.auth.bookingIdentity(request.user.sub, query.code)); }
   @Post("wallet/loads") @UseGuards(JwtAuthGuard, CustomerAuthGuard)
-  async load(@Body() input: CustomerWalletOperationDto, @Req() request: { user: AuthenticatedStaff }) { const identity = await this.auth.bookingIdentity(request.user.sub, input.code); return this.wallet.load({ ...identity, method: input.method as "MOZA_DEMO" | "MPESA_DEMO" | "EMOLA_DEMO" | "PROMO_DEMO", idempotencyKey: input.idempotencyKey }); }
+  async load(@Body() input: CustomerWalletOperationDto, @Req() request: { user: AuthenticatedStaff }) { const identity = await this.auth.bookingIdentity(request.user.sub, input.code); return this.wallet.load({ ...identity, amountMzn: input.amountMzn ?? 500, method: input.method as "MOZA_DEMO" | "MPESA_DEMO" | "EMOLA_DEMO" | "PROMO_DEMO", idempotencyKey: input.idempotencyKey }); }
   @Post("wallet/payments") @UseGuards(JwtAuthGuard, CustomerAuthGuard)
   async pay(@Body() input: CustomerWalletOperationDto, @Req() request: { user: AuthenticatedStaff }) { const identity = await this.auth.bookingIdentity(request.user.sub, input.code); return this.wallet.pay({ ...identity, idempotencyKey: input.idempotencyKey }); }
   @Post("wallet/rewards/redeem") @UseGuards(JwtAuthGuard, CustomerAuthGuard)

@@ -1,4 +1,4 @@
-import { IsIn, IsString, Matches, MaxLength } from "class-validator";
+import { IsIn, IsInt, IsString, Matches, Max, MaxLength, Min } from "class-validator";
 
 export class WalletIdentityDto {
   @IsString()
@@ -12,6 +12,9 @@ export class WalletIdentityDto {
 }
 
 export class LoadDemoWalletDto extends WalletIdentityDto {
+  @IsInt() @Min(100) @Max(50000)
+  amountMzn!: number;
+
   @IsIn(["MOZA_DEMO", "MPESA_DEMO", "EMOLA_DEMO", "PROMO_DEMO"])
   method!: "MOZA_DEMO" | "MPESA_DEMO" | "EMOLA_DEMO" | "PROMO_DEMO";
 

@@ -23,6 +23,7 @@ export default function DemoCreditPanel({ mode = "credit" }: { mode?: WalletMode
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [identity, setIdentity] = useState<{ code: string; phone: string } | null>(null);
   const [method, setMethod] = useState("MOZA_DEMO");
+  const [loadAmount, setLoadAmount] = useState("500");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -45,7 +46,7 @@ export default function DemoCreditPanel({ mode = "credit" }: { mode?: WalletMode
         if (!response.ok) throw new Error(await errorMessage(response));
         setWallet(await response.json() as Wallet);
       })
-      .catch((cause) => { setError(cause instanceof Error ? cause.message : "Não foi possível abrir a carteira."); setAccountToken(""); })
+      .catch((cause) => { setError(cause instanceof Error ? cause.message : "Não foi possível abrir a carteira."); setAccountToken(""); setIdentity(null); setWallet(null); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -71,7 +72,7 @@ export default function DemoCreditPanel({ mode = "credit" }: { mode?: WalletMode
       const response = await fetch(accountToken ? `${apiUrl}/api/customer-auth/${accountPath}` : `${apiUrl}/api/demo-wallet/${path}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(accountToken ? { Authorization: `Bearer ${accountToken}` } : {}) },
-        body: JSON.stringify(accountToken ? { code: identity.code, ...(path === "loads" ? { method } : {}), ...(reward ? { reward } : {}), idempotencyKey: retryKey.current } : { ...identity, ...(path === "loads" ? { method } : {}), ...(reward ? { reward } : {}), idempotencyKey: retryKey.current }),
+        body: JSON.stringify(accountToken ? { code: identity.code, ...(path === "loads" ? { method, amountMzn: parsedLoadAmount } : {}), ...(reward ? { reward } : {}), idempotencyKey: retryKey.current } : { ...identity, ...(path === "loads" ? { method, amountMzn: parsedLoadAmount } : {}), ...(reward ? { reward } : {}), idempotencyKey: retryKey.current }),
       });
       if (!response.ok) throw new Error(await errorMessage(response));
       setWallet(await response.json() as Wallet);
@@ -82,23 +83,27 @@ export default function DemoCreditPanel({ mode = "credit" }: { mode?: WalletMode
   }
 
   const points = mode === "loyalty";
+  const canPayBooking = !!wallet && ["ACCEPTED", "COMPLETED"].includes(wallet.booking.status);
+  const paymentAlreadyRecorded = wallet?.movements.some((movement) => movement.type === "PAYMENT") ?? false;
+  const parsedLoadAmount = Number(loadAmount);
+  const validLoadAmount = Number.isInteger(parsedLoadAmount) && parsedLoadAmount >= 100 && parsedLoadAmount <= 50000;
   const rewardOptions: Array<{ type: RewardType; points: number; title: string; description: string }> = [
     { type: "WASH_DISCOUNT", points: 250, title: "Desconto parcial numa lavagem", description: "Receba 100 MT de credito promocional" },
   ];
   return <>
-    <div className="demo-notice prominent-notice"><strong>Demonstração sem valor monetário.</strong> Use o código e telefone de uma marcação. Nenhum valor é movimentado em bancos, M-Pesa ou e-Mola.</div>
-    {!identity ? <><p className="account-entry"><Link href="/perfil">Entre na sua conta</Link> para abrir a carteira associada ao seu perfil.</p><form className="demo-form wallet-identity-form" onSubmit={identify}>
+    <div className="demo-notice prominent-notice credit-demo-notice"><strong>Ambiente de demonstração.</strong> Os saldos são fictícios e não movimentam dinheiro. Moza Banco, M-Pesa e e-Mola não estão ligados à aplicação.</div>
+    {!identity ? accountToken ? loading ? <div className="credit-loading" role="status"><span className="loading-spinner" aria-hidden="true" /><span>A carregar a carteira da sua conta…</span></div> : <section className="credit-empty-state"><span className="credit-empty-icon" aria-hidden="true">+</span><div><p className="eyebrow">Ainda sem carteira</p><h2>Faça a sua primeira marcação</h2><p>A carteira fica disponível depois de associar uma marcação à sua conta.</p></div><Link className="primary-link" href="/marcacoes">Ver serviços e marcar</Link></section> : <><p className="account-entry">Já tem conta? <Link href="/perfil">Entre para abrir a carteira associada ao seu perfil</Link>.</p><form className="demo-form wallet-identity-form" onSubmit={identify}>
       <div className="booking-step-heading"><span>1</span><div><h2>Identifique a sua carteira demonstrativa</h2><p>Confirme um pedido seu com o código e o contacto associado.</p></div></div>
       <label>Código do pedido<input name="code" placeholder="Ex.: A1B2C3D4" minLength={8} maxLength={8} required /></label>
       <label>Contacto telefónico<input name="phone" type="tel" placeholder="84 123 4567" pattern="(\+?258[\s-]?)?8[2-7]([\s-]?[0-9]){7}" required /></label>
       {error && <p className="feedback error" role="alert">{error}</p>}
-      <button className="primary-button" disabled={loading}>{loading ? "A verificar…" : "Abrir carteira de demonstração"}</button>
+      <button className="primary-button" disabled={loading}>{loading ? "A verificar…" : "Consultar carteira"}</button>
     </form></> : <>
       {accountToken && <label className="wallet-booking-select">Marcação<select value={identity.code} onChange={async (event) => { const code = event.target.value; setIdentity({ code, phone: "" }); setLoading(true); try { const response = await fetch(`${apiUrl}/api/customer-auth/wallet?code=${code}`, { headers: { Authorization: `Bearer ${accountToken}` }, cache: "no-store" }); if (!response.ok) throw new Error(await errorMessage(response)); setWallet(await response.json() as Wallet); } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao consultar a carteira."); } finally { setLoading(false); } }}>{accountBookings.map((booking) => <option key={booking.publicCode} value={booking.publicCode}>{booking.publicCode} · {booking.service.name} · {booking.vehicle.plate}</option>)}</select></label>}
       {!points && <section className="wallet-card">
-        <div className="wallet-topline"><span>CRÉDITO LAVA JÁ · DEMONSTRAÇÃO</span><span className="demo-badge">Sem valor monetário</span></div>
+        <div className="wallet-topline"><span>LAVA JÁ · CARTEIRA</span><span className="demo-badge">Demonstração</span></div>
         <p>Saldo demonstrativo disponível</p><strong className="wallet-amount">{(wallet?.balanceMzn ?? 0).toLocaleString("pt-MZ")} <small>MT</small></strong>
-        <div className="wallet-balance-breakdown"><span>Carregado <strong>{(wallet?.loadedBalanceMzn ?? 0).toLocaleString("pt-MZ")} MT</strong></span><span>Promocional <strong>{(wallet?.promoBalanceMzn ?? 0).toLocaleString("pt-MZ")} MT</strong></span><span>Bonus Moza <strong>{(wallet?.mozaCreditBalanceMzn ?? 0).toLocaleString("pt-MZ")} MT</strong></span></div>
+        <div className="wallet-balance-breakdown"><span>Carregado <strong>{(wallet?.loadedBalanceMzn ?? 0).toLocaleString("pt-MZ")} MT</strong></span><span>Promocional <strong>{(wallet?.promoBalanceMzn ?? 0).toLocaleString("pt-MZ")} MT</strong></span><span>Benefício especial <strong>{(wallet?.mozaCreditBalanceMzn ?? 0).toLocaleString("pt-MZ")} MT</strong></span></div>
         <span className="wallet-footnote">Não pode ser transferido, levantado ou usado fora desta demonstração.</span>
       </section>}
       {!points && <p className="field-hint">Saldo de fidelização demonstrativo: <strong>{(wallet?.pointsBalance ?? 0).toLocaleString("pt-MZ")} pontos</strong>. Pode consultar ou resgatar na área de Fidelização.</p>}
@@ -107,8 +112,8 @@ export default function DemoCreditPanel({ mode = "credit" }: { mode?: WalletMode
       {points && <section className="credit-panel"><span className="feature-icon">✦</span><h2>Troque pontos por beneficios</h2><div className="reward-options">{rewardOptions.map((reward) => <article className="reward-option" key={reward.type}><div><strong>{reward.points} pontos · {reward.title}</strong><p>{reward.description}</p></div><button className="secondary-button" disabled={loading || (wallet?.pointsBalance ?? 0) < reward.points} onClick={() => void operate("rewards/redeem", reward.type)}>Resgatar</button></article>)}</div><small>Vouchers de parceiros sao demonstrativos ate existirem parceiros integrados. O credito da lavagem fica no saldo promocional, separado do carregado.</small></section>}
       {points && !!wallet?.rewards.length && <div className="reward-redemptions"><h3>Vouchers e recompensas resgatados</h3>{wallet.rewards.map((reward) => <article key={reward.id}><strong>{reward.rewardType.replaceAll("_", " ")}</strong><span>Codigo: {reward.code}</span><small>{reward.pointsSpent} pontos{reward.promoCreditGrantedMzn ? ` · ${reward.promoCreditGrantedMzn} MT em credito promocional` : " · voucher demonstrativo"}</small></article>)}</div>}
       {!points && <div className="credit-actions">
-        <section className="credit-panel"><span className="feature-icon">＋</span><h2>Adicionar crédito</h2><p>O método serve apenas para ilustrar o fluxo.</p><label>Meio simulado<select value={method} onChange={(event) => setMethod(event.target.value)}><option value="MOZA_DEMO">Moza Banco · demonstração</option><option value="MPESA_DEMO">M-Pesa · demonstração</option><option value="EMOLA_DEMO">e-Mola · demonstração</option><option value="PROMO_DEMO">Crédito promocional · demonstração</option></select></label><button className="primary-button" disabled={loading} onClick={() => void operate("loads")}>Simular carregamento de 500 MT</button></section>
-        <section className="credit-panel"><span className="feature-icon">↗</span><h2>Pagar uma marcação</h2><p>{wallet?.booking.service} · pedido {wallet?.booking.code}</p><div className="booking-summary"><span>Preço guardado</span><strong>{wallet?.booking.priceMzn.toLocaleString("pt-MZ")} MT demo</strong></div><button className="secondary-button" disabled={loading} onClick={() => void operate("payments")}>Simular pagamento</button><small>Estado: {wallet?.booking.status}. Apenas pedidos aceites ou concluídos podem ser pagos uma vez.</small></section>
+        <section className="credit-panel"><span className="feature-icon">＋</span><h2>Recarregar a carteira</h2><p>Defina o valor que pretende adicionar e escolha um método ilustrativo.</p><label>Valor a carregar (MT)<input type="number" min="100" max="50000" step="1" inputMode="numeric" value={loadAmount} onChange={(event) => setLoadAmount(event.target.value)} aria-describedby="load-amount-hint" /></label><small id="load-amount-hint">Introduza um valor inteiro entre 100 e 50.000 MT.</small><label>Meio simulado<select value={method} onChange={(event) => setMethod(event.target.value)}><option value="MOZA_DEMO">Transferência bancária · demonstração</option><option value="MPESA_DEMO">M-Pesa · demonstração</option><option value="EMOLA_DEMO">e-Mola · demonstração</option><option value="PROMO_DEMO">Crédito promocional · demonstração</option></select></label><button className="primary-button" disabled={loading || !validLoadAmount} onClick={() => void operate("loads")}>{loading ? "A processar…" : `Simular carregamento · ${validLoadAmount ? parsedLoadAmount.toLocaleString("pt-MZ") : "—"} MT`}</button></section>
+        <section className="credit-panel"><span className="feature-icon">↗</span><h2>Pagar uma marcação</h2><p>{wallet?.booking.service} · pedido {wallet?.booking.code}</p><div className="booking-summary"><span>Preço guardado</span><strong>{wallet?.booking.priceMzn.toLocaleString("pt-MZ")} MT demo</strong></div><button className="secondary-button" disabled={loading || !canPayBooking || paymentAlreadyRecorded} onClick={() => void operate("payments")}>{paymentAlreadyRecorded ? "Pagamento já registado" : loading ? "A processar…" : canPayBooking ? "Simular pagamento" : "Disponível após confirmação"}</button><small>Disponível uma vez quando a marcação estiver aceite ou concluída. O pagamento usa primeiro os créditos promocionais.</small></section>
       </div>}
       {error && <p className="feedback error" role="alert">{error}</p>}
       {notice && <p className="feedback success" role="status">{notice}</p>}
